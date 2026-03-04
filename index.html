@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>모델 숙소 관리 시스템 (완벽 연동)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .sync-status {
+            text-align: center;
+            color: white;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+            padding: 8px;
+            border-radius: 5px;
+        }
+        
+        .sync-status.syncing {
+            background: rgba(255, 215, 0, 0.3);
+        }
+        
+        .sync-status.synced {
+            background: rgba(144, 238, 144, 0.3);
+        }
+        
+        .sync-status.error {
+            background: rgba(255, 107, 107, 0.3);
+        }
+        
+        .controls {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .btn:hover:not(:disabled) {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+        }
+        
+        .btn-danger:hover:not(:disabled) {
+            background: #c82333;
+        }
+        
+        .btn-success {
+            background: #28a745;
+        }
+        
+        .btn-success:hover:not(:disabled) {
+            background: #218838;
+        }
+        
+        .date-info {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 1.2em;
+            color: #667eea;
+            font-weight: bold;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .room-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s;
+        }
+        
+        .room-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .room-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #667eea;
+        }
+        
+        .room-title {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .room-type {
+            font-size: 0.9em;
+            color: #666;
+        }
+        
+        .occupancy {
+            font-size: 1.1em;
+            font-weight: bold;
+            padding: 8px 15px;
+            border-radius: 20px;
+            background: #f0f0f0;
+        }
+        
+        .occupancy.full {
+            background: #fee;
+            color: #d00;
+        }
+        
+        .occupancy.available {
+            background: #efe;
+            color: #0a0;
+        }
+        
+        .resident {
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .resident-name {
+            font-weight: bold;
+            font-size: 1.1em;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .resident-info {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .checkout-date {
+            display: inline-block;
+            background: #fff3cd;
+            padding: 3px 10px;
+            border-radius: 5px;
+            margin-top: 5px;
+            font-weight: bold;
+            color: #856404;
+        }
+        
+        .checkout-date.soon {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .checkout-date.permanent {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .resident-actions {
+            margin-top: 10px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 0.85em;
+        }
+        
+        .empty-bed {
+            background: #e8f5e9;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 10px;
+            border-left: 4px solid #4caf50;
+            color: #2e7d32;
+            font-weight: bold;
+            text-align: center;
+        }
+        
+        .capacity-bar {
+            height: 30px;
+            background: #e0e0e0;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+        
+        .capacity-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            transition: width 0.3s;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        
+        .modal-header {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .alert-box {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        
+        .alert-title {
+            font-weight: bold;
+            color: #856404;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: white;
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏠 모델 숙소 관리 시스템</h1>
+        <div class="sync-status synced" id="syncStatus">✅ 구글 시트와 연동됨</div>
+        
+        <div class="controls">
+            <button class="btn" onclick="openAddModal()" id="addBtn">➕ 모델 추가</button>
+            <button class="btn btn-success" onclick="syncNow()" id="syncBtn">🔄 새로고침</button>
+            <button class="btn" onclick="openSheetInNewTab()">📊 구글 시트 열기</button>
+        </div>
+        
+        <div class="date-info">
+            📅 오늘 날짜: <span id="today"></span>
+        </div>
+
+        <div class="alert-box" id="alerts" style="display: none;"></div>
+
+        <div id="loadingDiv" class="loading">
+            🔄 데이터 불러오는 중...
+        </div>
+
+        <div class="dashboard" id="dashboard" style="display: none;"></div>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div id="addModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header" id="modalTitle">모델 추가</div>
+            <div class="form-group">
+                <label>이름 *</label>
+                <input type="text" id="modelName" placeholder="모델 이름" required>
+            </div>
+            <div class="form-group">
+                <label>성별 *</label>
+                <select id="modelGender">
+                    <option value="남자">남자</option>
+                    <option value="여자">여자</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>숙소 *</label>
+                <select id="modelRoom">
+                    <option value="101">101호 (남자)</option>
+                    <option value="202">202호 (여자)</option>
+                    <option value="303">303호 (여자)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>방 타입 *</label>
+                <select id="modelRoomType">
+                    <option value="1인실">1인실</option>
+                    <option value="2인실">2인실</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>입국일</label>
+                <input type="date" id="modelCheckin">
+            </div>
+            <div class="form-group">
+                <label>퇴실 예정일 (상주면 비워두세요)</label>
+                <input type="date" id="modelCheckout">
+            </div>
+            <div class="form-group">
+                <label>비고</label>
+                <input type="text" id="modelNote" placeholder="상주, 특이사항 등">
+            </div>
+            <div class="modal-actions">
+                <button class="btn" onclick="saveModel()" id="saveBtn" style="flex: 1;">저장</button>
+                <button class="btn btn-danger" onclick="closeModal()" style="flex: 1;">취소</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Move Modal -->
+    <div id="moveModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">숙소 이동</div>
+            <div id="moveContent"></div>
+            <div class="modal-actions">
+                <button class="btn" onclick="confirmMove()" style="flex: 1;">이동</button>
+                <button class="btn btn-danger" onclick="closeMoveModal()" style="flex: 1;">취소</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzPeTYxOWaNcbMSJfx8VmpC890uG8l4L6mNWa0rpK09rOI4A_hnq8MBV82N7j9jouTW/exec';
+        const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1Nb9zHBCNtLYw7zrn1yM30ESJFTZTHrxS/edit';
+        
+        let models = [];
+        let currentEditId = null;
+        let currentMoveId = null;
+        const today = new Date();
+
+        const roomConfig = {
+            '101': { name: '101호 (남자)', type: '투룸', gender: '남자', capacity: 3 },
+            '202': { name: '202호 (여자)', type: '투룸', gender: '여자', capacity: 4 },
+            '303': { name: '303호 (여자)', type: '쓰리룸', gender: '여자', capacity: 5 }
+        };
+
+        // 동기화 상태 업데이트
+        function updateSyncStatus(status, message) {
+            const statusEl = document.getElementById('syncStatus');
+            statusEl.className = `sync-status ${status}`;
+            statusEl.textContent = message;
+        }
+
+        // 구글 시트에서 데이터 읽기
+        async function loadFromSheet() {
+            try {
+                updateSyncStatus('syncing', '🔄 데이터 불러오는 중...');
+                
+                const response = await fetch(`${SCRIPT_URL}?action=read`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    const rows = result.data.slice(1); // 헤더 제외
+                    
+                    models = rows
+                        .filter(row => row[0] && row[1])
+                        .map(row => ({
+                            id: parseInt(row[0]) || 0,
+                            name: row[1] || '',
+                            gender: row[2] || '여자',
+                            room: row[3] || '202',
+                            roomType: row[4] || '2인실',
+                            checkin: row[5] || '',
+                            checkout: row[6] || '',
+                            note: row[7] || ''
+                        }));
+                    
+                    updateSyncStatus('synced', '✅ 동기화 완료');
+                    document.getElementById('loadingDiv').style.display = 'none';
+                    document.getElementById('dashboard').style.display = 'grid';
+                    renderDashboard();
+                } else {
+                    throw new Error('데이터 로드 실패');
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                updateSyncStatus('error', '❌ 동기화 실패');
+                alert('데이터를 불러올 수 없습니다. 잠시 후 다시 시도해주세요.');
+            }
+        }
+
+        // 구글 시트에 데이터 저장
+        async function saveToSheet(action, data) {
+            try {
+                updateSyncStatus('syncing', '💾 저장 중...');
+                
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ action, ...data })
+                });
+                
+                // no-cors 모드에서는 응답을 읽을 수 없으므로 바로 새로고침
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                await loadFromSheet();
+                
+            } catch (error) {
+                console.error('Error:', error);
+                updateSyncStatus('error', '❌ 저장 실패');
+                alert('저장에 실패했습니다. 다시 시도해주세요.');
+            }
+        }
+
+        // 새로고침
+        async function syncNow() {
+            await loadFromSheet();
+        }
+
+        // 구글 시트 열기
+        function openSheetInNewTab() {
+            window.open(SHEET_URL, '_blank');
+        }
+
+        // D-day 계산
+        function getDday(dateStr) {
+            if (!dateStr) return null;
+            const targetDate = new Date(dateStr);
+            const diff = Math.ceil((targetDate - today) / (1000 * 60 * 60 * 24));
+            return diff;
+        }
+
+        // 날짜 포맷
+        function formatDate(dateStr) {
+            if (!dateStr) return '기한없음';
+            const date = new Date(dateStr);
+            return `${date.getMonth() + 1}월 ${date.getDate()}일`;
+        }
+
+        // 대시보드 렌더링
+        function renderDashboard() {
+            const dashboard = document.getElementById('dashboard');
+            dashboard.innerHTML = '';
+
+            Object.keys(roomConfig).forEach(roomId => {
+                const config = roomConfig[roomId];
+                const roomModels = models.filter(m => m.room === roomId);
+                const occupancy = roomModels.length;
+                const percentage = Math.round((occupancy / config.capacity) * 100);
+
+                let card = `
+                    <div class="room-card">
+                        <div class="room-header">
+                            <div>
+                                <div class="room-title">${config.name}</div>
+                                <div class="room-type">${config.type} | 최대 ${config.capacity}명</div>
+                            </div>
+                            <div class="occupancy ${occupancy >= config.capacity ? 'full' : 'available'}">
+                                ${occupancy}/${config.capacity}명
+                            </div>
+                        </div>
+                        
+                        <div class="capacity-bar">
+                            <div class="capacity-fill" style="width: ${percentage}%;">${percentage}% 입주</div>
+                        </div>
+                `;
+
+                roomModels.forEach(model => {
+                    const dday = getDday(model.checkout);
+                    const ddayClass = dday !== null && dday <= 14 ? 'soon' : '';
+                    const checkoutClass = model.checkout ? ddayClass : 'permanent';
+                    const checkoutText = model.checkout 
+                        ? `퇴실: ${formatDate(model.checkout)} (D-${dday})`
+                        : model.note || '상주';
+
+                    card += `
+                        <div class="resident">
+                            <div class="resident-name">👤 ${model.name}</div>
+                            <div class="resident-info">📍 ${model.roomType}</div>
+                            <div class="checkout-date ${checkoutClass}">${checkoutText}</div>
+                            <div class="resident-actions">
+                                <button class="btn btn-small" onclick="editModel(${model.id})">✏️ 수정</button>
+                                <button class="btn btn-small" onclick="openMoveModal(${model.id})">🔄 이동</button>
+                                <button class="btn btn-small btn-danger" onclick="deleteModel(${model.id})">❌ 퇴실</button>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                if (occupancy < config.capacity) {
+                    const available = config.capacity - occupancy;
+                    card += `
+                        <div class="empty-bed">
+                            ✅ ${available}자리 가능
+                        </div>
+                    `;
+                }
+
+                card += `</div>`;
+                dashboard.innerHTML += card;
+            });
+
+            updateAlerts();
+        }
+
+        // 알림 업데이트
+        function updateAlerts() {
+            const alerts = [];
+            
+            models.forEach(model => {
+                const dday = getDday(model.checkout);
+                if (dday !== null && dday <= 14 && dday >= 0) {
+                    alerts.push(`⚠️ <strong>${model.name}</strong>: ${formatDate(model.checkout)} 퇴실 예정 (D-${dday})`);
+                }
+            });
+
+            const alertBox = document.getElementById('alerts');
+            if (alerts.length > 0) {
+                alertBox.innerHTML = `
+                    <div class="alert-title">🔔 중요 알림</div>
+                    ${alerts.map(a => `<div style="margin: 5px 0;">• ${a}</div>`).join('')}
+                `;
+                alertBox.style.display = 'block';
+            } else {
+                alertBox.style.display = 'none';
+            }
+        }
+
+        // 모달 열기
+        function openAddModal() {
+            currentEditId = null;
+            document.getElementById('modalTitle').textContent = '모델 추가';
+            document.getElementById('modelName').value = '';
+            document.getElementById('modelGender').value = '여자';
+            document.getElementById('modelRoom').value = '202';
+            document.getElementById('modelRoomType').value = '2인실';
+            document.getElementById('modelCheckin').value = '';
+            document.getElementById('modelCheckout').value = '';
+            document.getElementById('modelNote').value = '';
+            document.getElementById('addModal').style.display = 'block';
+        }
+
+        // 모달 닫기
+        function closeModal() {
+            document.getElementById('addModal').style.display = 'none';
+        }
+
+        // 모델 저장
+        async function saveModel() {
+            const name = document.getElementById('modelName').value.trim();
+            const gender = document.getElementById('modelGender').value;
+            const room = document.getElementById('modelRoom').value;
+            const roomType = document.getElementById('modelRoomType').value;
+            const checkin = document.getElementById('modelCheckin').value || '';
+            const checkout = document.getElementById('modelCheckout').value || '';
+            const note = document.getElementById('modelNote').value || '';
+
+            if (!name) {
+                alert('이름을 입력해주세요.');
+                return;
+            }
+
+            if (roomConfig[room].gender !== gender) {
+                alert(`${roomConfig[room].name}는 ${roomConfig[room].gender} 전용입니다.`);
+                return;
+            }
+
+            closeModal();
+
+            if (currentEditId) {
+                await saveToSheet('update', {
+                    id: currentEditId,
+                    name, gender, room, roomType, checkin, checkout, note
+                });
+            } else {
+                await saveToSheet('add', {
+                    name, gender, room, roomType, checkin, checkout, note
+                });
+            }
+        }
+
+        // 모델 수정
+        function editModel(id) {
+            const model = models.find(m => m.id === id);
+            currentEditId = id;
+            
+            document.getElementById('modalTitle').textContent = '모델 수정';
+            document.getElementById('modelName').value = model.name;
+            document.getElementById('modelGender').value = model.gender;
+            document.getElementById('modelRoom').value = model.room;
+            document.getElementById('modelRoomType').value = model.roomType;
+            document.getElementById('modelCheckin').value = model.checkin;
+            document.getElementById('modelCheckout').value = model.checkout;
+            document.getElementById('modelNote').value = model.note;
+            document.getElementById('addModal').style.display = 'block';
+        }
+
+        // 이동 모달 열기
+        function openMoveModal(id) {
+            currentMoveId = id;
+            const model = models.find(m => m.id === id);
+            
+            const availableRooms = Object.keys(roomConfig)
+                .filter(r => roomConfig[r].gender === model.gender && r !== model.room);
+
+            let content = `
+                <div class="form-group">
+                    <label>현재: ${roomConfig[model.room].name} - ${model.roomType}</label>
+                </div>
+                <div class="form-group">
+                    <label>이동할 숙소</label>
+                    <select id="moveToRoom">
+            `;
+
+            availableRooms.forEach(roomId => {
+                content += `<option value="${roomId}">${roomConfig[roomId].name}</option>`;
+            });
+
+            content += `
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>방 타입</label>
+                    <select id="moveToRoomType">
+                        <option value="1인실">1인실</option>
+                        <option value="2인실">2인실</option>
+                    </select>
+                </div>
+            `;
+
+            document.getElementById('moveContent').innerHTML = content;
+            document.getElementById('moveModal').style.display = 'block';
+        }
+
+        // 이동 모달 닫기
+        function closeMoveModal() {
+            document.getElementById('moveModal').style.display = 'none';
+        }
+
+        // 이동 확인
+        async function confirmMove() {
+            const model = models.find(m => m.id === currentMoveId);
+            const newRoom = document.getElementById('moveToRoom').value;
+            const newRoomType = document.getElementById('moveToRoomType').value;
+
+            closeMoveModal();
+
+            await saveToSheet('update', {
+                id: model.id,
+                name: model.name,
+                gender: model.gender,
+                room: newRoom,
+                roomType: newRoomType,
+                checkin: model.checkin,
+                checkout: model.checkout,
+                note: model.note
+            });
+        }
+
+        // 모델 삭제
+        async function deleteModel(id) {
+            const model = models.find(m => m.id === id);
+            if (confirm(`${model.name} 퇴실 처리하시겠습니까?`)) {
+                await saveToSheet('delete', { id });
+            }
+        }
+
+        // 초기화
+        document.getElementById('today').textContent = today.toLocaleDateString('ko-KR', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            weekday: 'short'
+        });
+
+        // 페이지 로드 시 데이터 불러오기
+        loadFromSheet();
+
+        // 30초마다 자동 새로고침 (다른 사람의 변경사항 반영)
+        setInterval(loadFromSheet, 30000);
+    </script>
+</body>
+</html>
