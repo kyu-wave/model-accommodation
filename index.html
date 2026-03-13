@@ -1,9 +1,12 @@
+네! 복사하세요! 👇파일이 너무 길어서 잘렸네요! 전체 내용을 텍스트로 드리겠습니다!
+
+```html
 <!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>모델 숙소 관리 시스템 (완벽 연동)</title>
+    <title>모델 아파트 현황표</title>
     <style>
         * {
             margin: 0;
@@ -12,769 +15,860 @@
         }
         
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f8f9fa;
             padding: 20px;
-            min-height: 100vh;
         }
         
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-        
-        h1 {
-            color: white;
-            text-align: center;
-            margin-bottom: 10px;
-            font-size: 2.5em;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
-        
-        .sync-status {
-            text-align: center;
-            color: white;
-            margin-bottom: 20px;
-            font-size: 0.9em;
-            padding: 8px;
-            border-radius: 5px;
-        }
-        
-        .sync-status.syncing {
-            background: rgba(255, 215, 0, 0.3);
-        }
-        
-        .sync-status.synced {
-            background: rgba(144, 238, 144, 0.3);
-        }
-        
-        .sync-status.error {
-            background: rgba(255, 107, 107, 0.3);
-        }
-        
-        .controls {
+        .header {
             background: white;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            align-items: center;
+            padding: 24px;
+            margin-bottom: 24px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
         
-        .btn {
-            background: #667eea;
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 16px;
+        }
+        
+        .btn-primary {
+            padding: 10px 20px;
+            background: #2563eb;
             color: white;
             border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
+            border-radius: 6px;
             cursor: pointer;
-            font-size: 1em;
-            font-weight: bold;
-            transition: all 0.3s;
+            font-size: 14px;
+            font-weight: 500;
         }
         
-        .btn:hover:not(:disabled) {
-            background: #5568d3;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        .btn-primary:hover {
+            background: #1d4ed8;
         }
         
-        .btn:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-            transform: none;
-        }
-        
-        .btn-danger {
-            background: #dc3545;
-        }
-        
-        .btn-danger:hover:not(:disabled) {
-            background: #c82333;
-        }
-        
-        .btn-success {
-            background: #28a745;
-        }
-        
-        .btn-success:hover:not(:disabled) {
-            background: #218838;
-        }
-        
-        .date-info {
+        .calendar-wrapper {
             background: white;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            text-align: center;
-            font-size: 1.2em;
-            color: #667eea;
-            font-weight: bold;
+            border-radius: 8px;
+            overflow-x: auto;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            max-height: calc(100vh - 150px);
+            overflow-y: auto;
+            position: relative;
         }
         
-        .dashboard {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 25px;
-            margin-bottom: 30px;
+        .calendar-container {
+            min-width: 100%;
         }
         
-        .room-card {
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            position: relative;
+        }
+        
+        thead {
+            position: sticky;
+            top: 0;
+            z-index: 100;
             background: white;
-            border-radius: 15px;
-            padding: 25px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            transition: transform 0.3s;
         }
         
-        .room-card:hover {
-            transform: translateY(-5px);
+        thead tr {
+            background: white;
         }
         
-        .room-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 3px solid #667eea;
-        }
-        
-        .room-title {
-            font-size: 1.5em;
-            font-weight: bold;
-            color: #667eea;
-        }
-        
-        .room-type {
-            font-size: 0.9em;
-            color: #666;
-        }
-        
-        .occupancy {
-            font-size: 1.1em;
-            font-weight: bold;
-            padding: 8px 15px;
-            border-radius: 20px;
-            background: #f0f0f0;
-        }
-        
-        .occupancy.full {
-            background: #fee;
-            color: #d00;
-        }
-        
-        .occupancy.available {
-            background: #efe;
-            color: #0a0;
-        }
-        
-        .resident {
-            background: #f8f9fa;
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 10px;
-            border-left: 4px solid #667eea;
-        }
-        
-        .resident-name {
-            font-weight: bold;
-            font-size: 1.1em;
-            color: #333;
-            margin-bottom: 5px;
-        }
-        
-        .resident-info {
-            color: #666;
-            font-size: 0.9em;
-        }
-        
-        .checkout-date {
-            display: inline-block;
-            background: #fff3cd;
-            padding: 3px 10px;
-            border-radius: 5px;
-            margin-top: 5px;
-            font-weight: bold;
-            color: #856404;
-        }
-        
-        .checkout-date.soon {
-            background: #f8d7da;
-            color: #721c24;
-        }
-        
-        .checkout-date.permanent {
-            background: #d1ecf1;
-            color: #0c5460;
-        }
-        
-        .resident-actions {
-            margin-top: 10px;
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-        
-        .btn-small {
-            padding: 6px 12px;
-            font-size: 0.85em;
-        }
-        
-        .empty-bed {
-            background: #e8f5e9;
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 10px;
-            border-left: 4px solid #4caf50;
-            color: #2e7d32;
-            font-weight: bold;
+        th {
+            background: #f1f5f9;
+            padding: 12px 6px;
             text-align: center;
+            font-weight: 600;
+            border: 1px solid #e2e8f0;
+            font-size: 12px;
+            position: sticky;
+            top: 0;
         }
         
-        .capacity-bar {
-            height: 30px;
-            background: #e0e0e0;
-            border-radius: 15px;
-            overflow: hidden;
-            margin: 15px 0;
+        td {
+            border: 1px solid #e2e8f0;
+            padding: 8px;
+            vertical-align: top;
+            min-height: 100px;
+            width: 90px;
+            max-width: 90px;
         }
         
-        .capacity-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #667eea, #764ba2);
+        .month-cell {
+            background: #f8fafc;
+            font-weight: 500;
+            text-align: center;
+            vertical-align: middle;
+            width: 60px;
+            max-width: 60px;
+        }
+        
+        .period-cell {
+            background: #fafbfc;
+            font-size: 13px;
+            color: #64748b;
+            text-align: center;
+            width: 80px;
+            max-width: 80px;
+        }
+        
+        .model-container {
+            min-height: 100px;
+            max-height: 100px;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+        
+        .model-container::-webkit-scrollbar {
+            width: 4px;
+        }
+        
+        .model-container::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 2px;
+        }
+        
+        .model-card {
+            background: white;
+            border: 2px solid #3b82f6;
+            border-radius: 6px;
+            padding: 4px;
+            margin-bottom: 4px;
+            cursor: move;
+            transition: all 0.2s;
+            position: relative;
+            min-height: 95px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .model-card.compact {
+            min-height: 45px;
+            padding: 2px;
+        }
+        
+        .model-card.compact .model-photo {
+            width: 35px;
+            height: 35px;
+        }
+        
+        .model-card.compact .model-name {
+            font-size: 9px;
+        }
+        
+        .model-card.compact .model-dates {
+            font-size: 8px;
+            display: none;
+        }
+        
+        .model-card.compact .model-card-actions {
+            top: 1px;
+            right: 1px;
+        }
+        
+        .model-card.compact .action-btn {
+            width: 16px;
+            height: 16px;
+            font-size: 8px;
+        }
+        
+        .model-card:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .model-card.dragging {
+            opacity: 0.5;
+            cursor: grabbing;
+        }
+        
+        .model-card-actions {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            display: none;
+            z-index: 5;
+        }
+        
+        .model-card:hover .model-card-actions {
+            display: flex;
+            gap: 2px;
+        }
+        
+        .action-btn {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 3px;
+            width: 20px;
+            height: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
-            font-weight: bold;
-            transition: width 0.3s;
+            cursor: pointer;
+            font-size: 10px;
         }
         
+        .action-btn:hover {
+            background: #f1f5f9;
+        }
+        
+        td.drag-over {
+            background: #eff6ff;
+            border: 2px dashed #3b82f6;
+        }
+        
+        .model-photo {
+            width: 70px;
+            height: 70px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin: 0 auto 4px auto;
+            display: block;
+        }
+        
+        .model-name {
+            font-size: 11px;
+            font-weight: 500;
+            text-align: center;
+            color: #1e293b;
+            line-height: 1.2;
+            word-break: keep-all;
+        }
+        
+        .model-dates {
+            font-size: 9px;
+            color: #64748b;
+            text-align: center;
+            margin-top: 2px;
+            line-height: 1.2;
+            word-break: keep-all;
+        }
+        
+        /* Modal */
         .modal {
             display: none;
             position: fixed;
-            z-index: 1000;
-            left: 0;
             top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0,0,0,0.5);
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal.show {
+            display: flex;
         }
         
         .modal-content {
-            background-color: white;
-            margin: 10% auto;
-            padding: 30px;
-            border-radius: 15px;
+            background: white;
+            border-radius: 12px;
             width: 90%;
             max-width: 500px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            padding: 32px;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+            max-height: 90vh;
+            overflow-y: auto;
         }
         
         .modal-header {
-            font-size: 1.5em;
-            font-weight: bold;
-            color: #667eea;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #667eea;
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 24px;
         }
         
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
         
         .form-group label {
             display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #333;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #374151;
         }
         
         .form-group input,
         .form-group select {
             width: 100%;
-            padding: 10px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            font-size: 1em;
+            padding: 10px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
         }
         
         .form-group input:focus,
         .form-group select:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
         
-        .modal-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-        }
-        
-        .alert-box {
-            background: #fff3cd;
-            border: 2px solid #ffc107;
-            border-radius: 10px;
-            padding: 15px;
-            margin: 20px 0;
-        }
-        
-        .alert-title {
-            font-weight: bold;
-            color: #856404;
-            margin-bottom: 10px;
-            font-size: 1.1em;
-        }
-        
-        .loading {
+        .photo-upload {
+            width: 100%;
+            padding: 20px;
+            border: 2px dashed #d1d5db;
+            border-radius: 8px;
             text-align: center;
-            padding: 40px;
-            color: white;
-            font-size: 1.2em;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .photo-upload:hover {
+            border-color: #2563eb;
+            background: #eff6ff;
+        }
+        
+        .photo-preview {
+            width: 120px;
+            height: 120px;
+            border-radius: 8px;
+            object-fit: cover;
+            margin: 12px auto;
+            display: none;
+        }
+        
+        .modal-footer {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 24px;
+        }
+        
+        .btn-cancel {
+            padding: 10px 20px;
+            background: #f3f4f6;
+            color: #374151;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .btn-cancel:hover {
+            background: #e5e7eb;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🏠 모델 숙소 관리 시스템</h1>
-        <div class="sync-status synced" id="syncStatus">✅ 구글 시트와 연동됨</div>
-        
-        <div class="controls">
-            <button class="btn" onclick="openAddModal()" id="addBtn">➕ 모델 추가</button>
-            <button class="btn btn-success" onclick="syncNow()" id="syncBtn">🔄 새로고침</button>
-            <button class="btn" onclick="openSheetInNewTab()">📊 구글 시트 열기</button>
-        </div>
-        
-        <div class="date-info">
-            📅 오늘 날짜: <span id="today"></span>
-        </div>
-
-        <div class="alert-box" id="alerts" style="display: none;"></div>
-
-        <div id="loadingDiv" class="loading">
-            🔄 데이터 불러오는 중...
-        </div>
-
-        <div class="dashboard" id="dashboard" style="display: none;"></div>
+    <div class="header">
+        <h1>🏠 모델 아파트 거주 현황표</h1>
+        <button class="btn-primary" onclick="openAddModal()">+ 모델 추가</button>
     </div>
 
-    <!-- Add/Edit Modal -->
+    <div class="calendar-wrapper">
+        <div class="calendar-container">
+            <table id="calendarTable">
+                <thead>
+                    <tr>
+                        <th rowspan="2" style="width: 80px;">월</th>
+                        <th rowspan="2" style="width: 100px;">기간</th>
+                        <th colspan="5">301호 (총 5명)</th>
+                        <th colspan="4">201호 (총 4명)</th>
+                        <th colspan="3">101호 (총 3명)</th>
+                        <th colspan="5">아파트 외 (총 5명)</th>
+                    </tr>
+                    <tr>
+                        <th style="font-size: 11px;">왼쪽방<br>1층</th>
+                        <th style="font-size: 11px;">왼쪽방<br>2층</th>
+                        <th style="font-size: 11px;">창문방<br>1층</th>
+                        <th style="font-size: 11px;">창문방<br>2층</th>
+                        <th style="font-size: 11px;">개인방</th>
+                        
+                        <th style="font-size: 11px;">큰방A</th>
+                        <th style="font-size: 11px;">큰방B</th>
+                        <th style="font-size: 11px;">작은방<br>1층</th>
+                        <th style="font-size: 11px;">작은방<br>2층</th>
+                        
+                        <th style="font-size: 11px;">개인방</th>
+                        <th style="font-size: 11px;">큰방<br>1층</th>
+                        <th style="font-size: 11px;">큰방<br>2층</th>
+                        
+                        <th style="font-size: 11px;">외부1</th>
+                        <th style="font-size: 11px;">외부2</th>
+                        <th style="font-size: 11px;">외부3</th>
+                        <th style="font-size: 11px;">외부4</th>
+                        <th style="font-size: 11px;">외부5</th>
+                    </tr>
+                </thead>
+                <tbody id="calendarBody">
+                    <!-- JavaScript로 생성 -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Add/Edit Model Modal -->
     <div id="addModal" class="modal">
         <div class="modal-content">
             <div class="modal-header" id="modalTitle">모델 추가</div>
+            <input type="hidden" id="editingModelId" value="">
+            
+            <div class="form-group">
+                <label>모델 사진</label>
+                <input type="file" id="photoInput" accept="image/*" style="display:none;" onchange="previewPhoto(event)">
+                <div class="photo-upload" onclick="document.getElementById('photoInput').click()">
+                    <img id="photoPreview" class="photo-preview">
+                    <div id="uploadText">📷 사진 업로드 (클릭)</div>
+                </div>
+            </div>
+
             <div class="form-group">
                 <label>이름 *</label>
-                <input type="text" id="modelName" placeholder="모델 이름" required>
+                <input type="text" id="modelName" placeholder="모델 이름 입력">
             </div>
-            <div class="form-group">
-                <label>성별 *</label>
-                <select id="modelGender">
-                    <option value="남자">남자</option>
-                    <option value="여자">여자</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>숙소 *</label>
-                <select id="modelRoom">
-                    <option value="101">101호 (남자)</option>
-                    <option value="202">202호 (여자)</option>
-                    <option value="303">303호 (여자)</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>방 타입 *</label>
-                <select id="modelRoomType">
-                    <option value="1인실">1인실</option>
-                    <option value="2인실">2인실</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>입국일</label>
-                <input type="date" id="modelCheckin">
-            </div>
-            <div class="form-group">
-                <label>퇴실 예정일 (상주면 비워두세요)</label>
-                <input type="date" id="modelCheckout">
-            </div>
-            <div class="form-group">
-                <label>비고</label>
-                <input type="text" id="modelNote" placeholder="상주, 특이사항 등">
-            </div>
-            <div class="modal-actions">
-                <button class="btn" onclick="saveModel()" id="saveBtn" style="flex: 1;">저장</button>
-                <button class="btn btn-danger" onclick="closeModal()" style="flex: 1;">취소</button>
-            </div>
-        </div>
-    </div>
 
-    <!-- Move Modal -->
-    <div id="moveModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">숙소 이동</div>
-            <div id="moveContent"></div>
-            <div class="modal-actions">
-                <button class="btn" onclick="confirmMove()" style="flex: 1;">이동</button>
-                <button class="btn btn-danger" onclick="closeMoveModal()" style="flex: 1;">취소</button>
+            <div class="form-group">
+                <label>아파트 *</label>
+                <select id="modelApt" onchange="updateBedOptions()">
+                    <option value="">선택</option>
+                    <option value="301">301호</option>
+                    <option value="201">201호</option>
+                    <option value="101">101호</option>
+                    <option value="외">아파트 외</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>침대 위치 *</label>
+                <select id="modelBed">
+                    <option value="">먼저 아파트를 선택하세요</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>입국일 *</label>
+                <input type="date" id="startDate">
+            </div>
+
+            <div class="form-group">
+                <label>출국일 (미정이면 비워두세요)</label>
+                <input type="date" id="endDate">
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn-cancel" onclick="closeModal()">취소</button>
+                <button class="btn-primary" onclick="saveModel()">저장</button>
             </div>
         </div>
     </div>
 
     <script>
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzPeTYxOWaNcbMSJfx8VmpC890uG8l4L6mNWa0rpK09rOI4A_hnq8MBV82N7j9jouTW/exec';
-        const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1Nb9zHBCNtLYw7zrn1yM30ESJFTZTHrxS/edit';
-        
         let models = [];
-        let currentEditId = null;
-        let currentMoveId = null;
-        const today = new Date();
+        let uploadedPhoto = null;
 
-        const roomConfig = {
-            '101': { name: '101호 (남자)', type: '투룸', gender: '남자', capacity: 3 },
-            '202': { name: '202호 (여자)', type: '투룸', gender: '여자', capacity: 4 },
-            '303': { name: '303호 (여자)', type: '쓰리룸', gender: '여자', capacity: 5 }
+        const colors = [
+            '#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6',
+            '#ec4899', '#14b8a6', '#f97316', '#06b6d4', '#6366f1'
+        ];
+
+        // 아파트 순서 명시
+        const aptOrder = ['301', '201', '101', '외'];
+
+        const apts = {
+            '301': {
+                name: '301호',
+                beds: [
+                    { id: '301-왼쪽1', name: '왼쪽방 1층' },
+                    { id: '301-왼쪽2', name: '왼쪽방 2층' },
+                    { id: '301-창문1', name: '창문방 1층' },
+                    { id: '301-창문2', name: '창문방 2층' },
+                    { id: '301-개인', name: '개인방' }
+                ]
+            },
+            '201': {
+                name: '201호',
+                beds: [
+                    { id: '201-큰A', name: '큰방A' },
+                    { id: '201-큰B', name: '큰방B' },
+                    { id: '201-작은1', name: '작은방 1층' },
+                    { id: '201-작은2', name: '작은방 2층' }
+                ]
+            },
+            '101': {
+                name: '101호',
+                beds: [
+                    { id: '101-개인', name: '개인방' },
+                    { id: '101-큰1', name: '큰방 1층' },
+                    { id: '101-큰2', name: '큰방 2층' }
+                ]
+            },
+            '외': {
+                name: '아파트 외',
+                beds: [
+                    { id: '외-1', name: '외부1' },
+                    { id: '외-2', name: '외부2' },
+                    { id: '외-3', name: '외부3' },
+                    { id: '외-4', name: '외부4' },
+                    { id: '외-5', name: '외부5' }
+                ]
+            }
         };
 
-        // 동기화 상태 업데이트
-        function updateSyncStatus(status, message) {
-            const statusEl = document.getElementById('syncStatus');
-            statusEl.className = `sync-status ${status}`;
-            statusEl.textContent = message;
-        }
-
-        // 구글 시트에서 데이터 읽기
-        async function loadFromSheet() {
-            try {
-                updateSyncStatus('syncing', '🔄 데이터 불러오는 중...');
-                
-                const response = await fetch(`${SCRIPT_URL}?action=read`);
-                const result = await response.json();
-                
-                if (result.success) {
-                    const rows = result.data.slice(1); // 헤더 제외
-                    
-                    models = rows
-                        .filter(row => row[0] && row[1])
-                        .map(row => ({
-                            id: parseInt(row[0]) || 0,
-                            name: row[1] || '',
-                            gender: row[2] || '여자',
-                            room: row[3] || '202',
-                            roomType: row[4] || '2인실',
-                            checkin: row[5] || '',
-                            checkout: row[6] || '',
-                            note: row[7] || ''
-                        }));
-                    
-                    updateSyncStatus('synced', '✅ 동기화 완료');
-                    document.getElementById('loadingDiv').style.display = 'none';
-                    document.getElementById('dashboard').style.display = 'grid';
-                    renderDashboard();
-                } else {
-                    throw new Error('데이터 로드 실패');
-                }
-                
-            } catch (error) {
-                console.error('Error:', error);
-                updateSyncStatus('error', '❌ 동기화 실패');
-                alert('데이터를 불러올 수 없습니다. 잠시 후 다시 시도해주세요.');
-            }
-        }
-
-        // 구글 시트에 데이터 저장
-        async function saveToSheet(action, data) {
-            try {
-                updateSyncStatus('syncing', '💾 저장 중...');
-                
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ action, ...data })
-                });
-                
-                // no-cors 모드에서는 응답을 읽을 수 없으므로 바로 새로고침
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                await loadFromSheet();
-                
-            } catch (error) {
-                console.error('Error:', error);
-                updateSyncStatus('error', '❌ 저장 실패');
-                alert('저장에 실패했습니다. 다시 시도해주세요.');
-            }
-        }
-
-        // 새로고침
-        async function syncNow() {
-            await loadFromSheet();
-        }
-
-        // 구글 시트 열기
-        function openSheetInNewTab() {
-            window.open(SHEET_URL, '_blank');
-        }
-
-        // D-day 계산
-        function getDday(dateStr) {
-            if (!dateStr) return null;
-            const targetDate = new Date(dateStr);
-            const diff = Math.ceil((targetDate - today) / (1000 * 60 * 60 * 24));
-            return diff;
-        }
-
-        // 날짜 포맷
-        function formatDate(dateStr) {
-            if (!dateStr) return '기한없음';
-            const date = new Date(dateStr);
-            return `${date.getMonth() + 1}월 ${date.getDate()}일`;
-        }
-
-        // 대시보드 렌더링
-        function renderDashboard() {
-            const dashboard = document.getElementById('dashboard');
-            dashboard.innerHTML = '';
-
-            Object.keys(roomConfig).forEach(roomId => {
-                const config = roomConfig[roomId];
-                const roomModels = models.filter(m => m.room === roomId);
-                const occupancy = roomModels.length;
-                const percentage = Math.round((occupancy / config.capacity) * 100);
-
-                let card = `
-                    <div class="room-card">
-                        <div class="room-header">
-                            <div>
-                                <div class="room-title">${config.name}</div>
-                                <div class="room-type">${config.type} | 최대 ${config.capacity}명</div>
-                            </div>
-                            <div class="occupancy ${occupancy >= config.capacity ? 'full' : 'available'}">
-                                ${occupancy}/${config.capacity}명
-                            </div>
-                        </div>
-                        
-                        <div class="capacity-bar">
-                            <div class="capacity-fill" style="width: ${percentage}%;">${percentage}% 입주</div>
-                        </div>
-                `;
-
-                roomModels.forEach(model => {
-                    const dday = getDday(model.checkout);
-                    const ddayClass = dday !== null && dday <= 14 ? 'soon' : '';
-                    const checkoutClass = model.checkout ? ddayClass : 'permanent';
-                    const checkoutText = model.checkout 
-                        ? `퇴실: ${formatDate(model.checkout)} (D-${dday})`
-                        : model.note || '상주';
-
-                    card += `
-                        <div class="resident">
-                            <div class="resident-name">👤 ${model.name}</div>
-                            <div class="resident-info">📍 ${model.roomType}</div>
-                            <div class="checkout-date ${checkoutClass}">${checkoutText}</div>
-                            <div class="resident-actions">
-                                <button class="btn btn-small" onclick="editModel(${model.id})">✏️ 수정</button>
-                                <button class="btn btn-small" onclick="openMoveModal(${model.id})">🔄 이동</button>
-                                <button class="btn btn-small btn-danger" onclick="deleteModel(${model.id})">❌ 퇴실</button>
-                            </div>
-                        </div>
-                    `;
-                });
-
-                if (occupancy < config.capacity) {
-                    const available = config.capacity - occupancy;
-                    card += `
-                        <div class="empty-bed">
-                            ✅ ${available}자리 가능
-                        </div>
-                    `;
-                }
-
-                card += `</div>`;
-                dashboard.innerHTML += card;
-            });
-
-            updateAlerts();
-        }
-
-        // 알림 업데이트
-        function updateAlerts() {
-            const alerts = [];
+        // 7개월 생성 (전월부터)
+        function getMonths() {
+            const months = [];
+            const today = new Date();
+            const startMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
             
-            models.forEach(model => {
-                const dday = getDday(model.checkout);
-                if (dday !== null && dday <= 14 && dday >= 0) {
-                    alerts.push(`⚠️ <strong>${model.name}</strong>: ${formatDate(model.checkout)} 퇴실 예정 (D-${dday})`);
-                }
-            });
+            for (let i = 0; i < 7; i++) {
+                const date = new Date(startMonth.getFullYear(), startMonth.getMonth() + i, 1);
+                const lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+                months.push({
+                    year: date.getFullYear(),
+                    month: date.getMonth() + 1,
+                    lastDay: lastDay,
+                    periods: [
+                        { label: '1~10일', start: 1, end: 10 },
+                        { label: '11~20일', start: 11, end: 20 },
+                        { label: `21~${lastDay}일`, start: 21, end: lastDay }
+                    ]
+                });
+            }
+            return months;
+        }
 
-            const alertBox = document.getElementById('alerts');
-            if (alerts.length > 0) {
-                alertBox.innerHTML = `
-                    <div class="alert-title">🔔 중요 알림</div>
-                    ${alerts.map(a => `<div style="margin: 5px 0;">• ${a}</div>`).join('')}
-                `;
-                alertBox.style.display = 'block';
-            } else {
-                alertBox.style.display = 'none';
+        // 모델이 해당 기간에 있는지 확인
+        function isModelInPeriod(model, year, month, startDay, endDay) {
+            const periodStart = new Date(year, month - 1, startDay);
+            const periodEnd = new Date(year, month - 1, endDay, 23, 59, 59);
+            
+            const modelStart = new Date(model.startDate);
+            const modelEnd = model.endDate ? new Date(model.endDate) : new Date('2099-12-31');
+            
+            return modelStart <= periodEnd && modelEnd >= periodStart;
+        }
+
+        // 캘린더 렌더링
+        function renderCalendar() {
+            const tbody = document.getElementById('calendarBody');
+            const months = getMonths();
+
+            tbody.innerHTML = '';
+
+            months.forEach((monthData, monthIndex) => {
+                // 전월(첫 번째 월)은 21~말일만 표시
+                let periodsToShow = monthData.periods;
+                if (monthIndex === 0) {
+                    periodsToShow = [monthData.periods[2]]; // 21~말일만
+                }
+                
+                const periodsCount = periodsToShow.length;
+                
+                periodsToShow.forEach((period, periodIndex) => {
+                    const tr = document.createElement('tr');
+                    
+                    // 월 셀 (rowspan)
+                    if (periodIndex === 0) {
+                        const monthCell = document.createElement('td');
+                        monthCell.className = 'month-cell';
+                        monthCell.rowSpan = periodsCount;
+                        monthCell.textContent = `${monthData.month}월`;
+                        tr.appendChild(monthCell);
+                    }
+                    
+                    // 기간 셀
+                    const periodCell = document.createElement('td');
+                    periodCell.className = 'period-cell';
+                    periodCell.textContent = period.label;
+                    tr.appendChild(periodCell);
+                    
+                    // 각 아파트의 침대별 셀
+                    aptOrder.forEach(aptId => {
+                        const aptData = apts[aptId];
+                        
+                        aptData.beds.forEach(bed => {
+                            const bedCell = document.createElement('td');
+                            bedCell.dataset.bedId = bed.id;
+                            bedCell.dataset.year = monthData.year;
+                            bedCell.dataset.month = monthData.month;
+                            bedCell.dataset.startDay = period.start;
+                            bedCell.dataset.endDay = period.end;
+                            
+                            const container = document.createElement('div');
+                            container.className = 'model-container';
+                            
+                            // 해당 기간에 해당 침대에 있는 모든 모델 찾기 (여러 명 가능)
+                            const bedModels = models.filter(m => 
+                                m.bed === bed.id && 
+                                isModelInPeriod(m, monthData.year, monthData.month, period.start, period.end)
+                            );
+                            
+                            // 모든 모델을 세로로 쌓기
+                            bedModels.forEach(bedModel => {
+                                const card = document.createElement('div');
+                                card.className = 'model-card';
+                                
+                                // 2명 이상이면 compact 모드
+                                if (bedModels.length >= 2) {
+                                    card.classList.add('compact');
+                                }
+                                
+                                card.draggable = true;
+                                card.dataset.modelId = bedModel.id;
+                                card.style.borderColor = bedModel.color;
+                                
+                                // 액션 버튼
+                                const actions = document.createElement('div');
+                                actions.className = 'model-card-actions';
+                                actions.innerHTML = `
+                                    <div class="action-btn" onclick="editModel(${bedModel.id}); event.stopPropagation();">✏️</div>
+                                    <div class="action-btn" onclick="deleteModel(${bedModel.id}); event.stopPropagation();">🗑️</div>
+                                `;
+                                card.appendChild(actions);
+                                
+                                if (bedModel.photo) {
+                                    const img = document.createElement('img');
+                                    img.src = bedModel.photo;
+                                    img.className = 'model-photo';
+                                    card.appendChild(img);
+                                }
+                                
+                                const name = document.createElement('div');
+                                name.className = 'model-name';
+                                name.textContent = bedModel.name;
+                                card.appendChild(name);
+                                
+                                const dates = document.createElement('div');
+                                dates.className = 'model-dates';
+                                const startStr = new Date(bedModel.startDate).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' });
+                                const endStr = bedModel.endDate ? new Date(bedModel.endDate).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' }) : '미정';
+                                dates.textContent = `${startStr} ~ ${endStr}`;
+                                card.appendChild(dates);
+                                
+                                // 드래그 이벤트
+                                card.addEventListener('dragstart', handleDragStart);
+                                card.addEventListener('dragend', handleDragEnd);
+                                
+                                container.appendChild(card);
+                            });
+                            
+                            bedCell.appendChild(container);
+                            
+                            // 드롭 영역 이벤트
+                            bedCell.addEventListener('dragover', handleDragOver);
+                            bedCell.addEventListener('drop', handleDrop);
+                            bedCell.addEventListener('dragleave', handleDragLeave);
+                            
+                            tr.appendChild(bedCell);
+                        });
+                    });
+                    
+                    tbody.appendChild(tr);
+                });
+            });
+        }
+
+        let draggedModelId = null;
+
+        function handleDragStart(e) {
+            const card = e.target.closest('.model-card');
+            if (card) {
+                draggedModelId = parseInt(card.dataset.modelId);
+                card.classList.add('dragging');
+                e.dataTransfer.effectAllowed = 'move';
+            }
+        }
+
+        function handleDragEnd(e) {
+            const card = e.target.closest('.model-card');
+            if (card) {
+                card.classList.remove('dragging');
+            }
+            document.querySelectorAll('.drag-over').forEach(el => {
+                el.classList.remove('drag-over');
+            });
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            const cell = e.currentTarget;
+            if (cell.tagName === 'TD') {
+                cell.classList.add('drag-over');
+            }
+        }
+
+        function handleDragLeave(e) {
+            const cell = e.currentTarget;
+            if (cell.tagName === 'TD') {
+                cell.classList.remove('drag-over');
+            }
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            const cell = e.currentTarget;
+            cell.classList.remove('drag-over');
+            
+            const newBedId = cell.dataset.bedId;
+            const model = models.find(m => m.id === draggedModelId);
+            
+            if (model && newBedId && model.bed !== newBedId) {
+                model.bed = newBedId;
+                // 아파트도 업데이트
+                model.apt = newBedId.split('-')[0];
+                renderCalendar();
+            }
+            
+            draggedModelId = null;
+        }
+
+        // 사진 미리보기
+        function previewPhoto(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    uploadedPhoto = e.target.result;
+                    document.getElementById('photoPreview').src = uploadedPhoto;
+                    document.getElementById('photoPreview').style.display = 'block';
+                    document.getElementById('uploadText').style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // 침대 옵션 업데이트
+        function updateBedOptions() {
+            const aptId = document.getElementById('modelApt').value;
+            const bedSelect = document.getElementById('modelBed');
+            
+            bedSelect.innerHTML = '<option value="">선택</option>';
+            
+            if (aptId && apts[aptId]) {
+                apts[aptId].beds.forEach(bed => {
+                    const option = document.createElement('option');
+                    option.value = bed.id;
+                    option.textContent = bed.name;
+                    bedSelect.appendChild(option);
+                });
             }
         }
 
         // 모달 열기
         function openAddModal() {
-            currentEditId = null;
             document.getElementById('modalTitle').textContent = '모델 추가';
-            document.getElementById('modelName').value = '';
-            document.getElementById('modelGender').value = '여자';
-            document.getElementById('modelRoom').value = '202';
-            document.getElementById('modelRoomType').value = '2인실';
-            document.getElementById('modelCheckin').value = '';
-            document.getElementById('modelCheckout').value = '';
-            document.getElementById('modelNote').value = '';
-            document.getElementById('addModal').style.display = 'block';
+            document.getElementById('editingModelId').value = '';
+            document.getElementById('addModal').classList.add('show');
+            resetForm();
+        }
+
+        // 모델 편집
+        function editModel(id) {
+            const model = models.find(m => m.id === id);
+            if (!model) return;
+            
+            document.getElementById('modalTitle').textContent = '모델 수정';
+            document.getElementById('editingModelId').value = id;
+            document.getElementById('modelName').value = model.name;
+            document.getElementById('modelApt').value = model.apt;
+            
+            // 침대 옵션 업데이트 후 선택
+            updateBedOptions();
+            document.getElementById('modelBed').value = model.bed;
+            
+            document.getElementById('startDate').value = model.startDate;
+            document.getElementById('endDate').value = model.endDate || '';
+            
+            if (model.photo) {
+                uploadedPhoto = model.photo;
+                document.getElementById('photoPreview').src = model.photo;
+                document.getElementById('photoPreview').style.display = 'block';
+                document.getElementById('uploadText').style.display = 'none';
+            }
+            
+            document.getElementById('addModal').classList.add('show');
         }
 
         // 모달 닫기
         function closeModal() {
-            document.getElementById('addModal').style.display = 'none';
+            document.getElementById('addModal').classList.remove('show');
+            resetForm();
+        }
+
+        // 폼 초기화
+        function resetForm() {
+            document.getElementById('editingModelId').value = '';
+            document.getElementById('modelName').value = '';
+            document.getElementById('modelApt').value = '';
+            document.getElementById('modelBed').innerHTML = '<option value="">먼저 아파트를 선택하세요</option>';
+            document.getElementById('startDate').value = '';
+            document.getElementById('endDate').value = '';
+            document.getElementById('photoPreview').style.display = 'none';
+            document.getElementById('uploadText').style.display = 'block';
+            uploadedPhoto = null;
         }
 
         // 모델 저장
-        async function saveModel() {
+        function saveModel() {
+            const editingId = document.getElementById('editingModelId').value;
             const name = document.getElementById('modelName').value.trim();
-            const gender = document.getElementById('modelGender').value;
-            const room = document.getElementById('modelRoom').value;
-            const roomType = document.getElementById('modelRoomType').value;
-            const checkin = document.getElementById('modelCheckin').value || '';
-            const checkout = document.getElementById('modelCheckout').value || '';
-            const note = document.getElementById('modelNote').value || '';
+            const apt = document.getElementById('modelApt').value;
+            const bed = document.getElementById('modelBed').value;
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
 
-            if (!name) {
-                alert('이름을 입력해주세요.');
+            if (!name || !apt || !bed || !startDate) {
+                alert('필수 항목을 입력해주세요.');
                 return;
             }
 
-            if (roomConfig[room].gender !== gender) {
-                alert(`${roomConfig[room].name}는 ${roomConfig[room].gender} 전용입니다.`);
-                return;
+            if (editingId) {
+                // 수정 모드
+                const model = models.find(m => m.id === parseInt(editingId));
+                if (model) {
+                    model.name = name;
+                    model.apt = apt;
+                    model.bed = bed;
+                    model.startDate = startDate;
+                    model.endDate = endDate || null;
+                    if (uploadedPhoto) {
+                        model.photo = uploadedPhoto;
+                    }
+                }
+            } else {
+                // 추가 모드
+                const newModel = {
+                    id: Date.now(),
+                    name,
+                    apt,
+                    bed,
+                    startDate,
+                    endDate: endDate || null,
+                    photo: uploadedPhoto,
+                    color: colors[models.length % colors.length]
+                };
+                models.push(newModel);
             }
 
             closeModal();
-
-            if (currentEditId) {
-                await saveToSheet('update', {
-                    id: currentEditId,
-                    name, gender, room, roomType, checkin, checkout, note
-                });
-            } else {
-                await saveToSheet('add', {
-                    name, gender, room, roomType, checkin, checkout, note
-                });
-            }
-        }
-
-        // 모델 수정
-        function editModel(id) {
-            const model = models.find(m => m.id === id);
-            currentEditId = id;
-            
-            document.getElementById('modalTitle').textContent = '모델 수정';
-            document.getElementById('modelName').value = model.name;
-            document.getElementById('modelGender').value = model.gender;
-            document.getElementById('modelRoom').value = model.room;
-            document.getElementById('modelRoomType').value = model.roomType;
-            document.getElementById('modelCheckin').value = model.checkin;
-            document.getElementById('modelCheckout').value = model.checkout;
-            document.getElementById('modelNote').value = model.note;
-            document.getElementById('addModal').style.display = 'block';
-        }
-
-        // 이동 모달 열기
-        function openMoveModal(id) {
-            currentMoveId = id;
-            const model = models.find(m => m.id === id);
-            
-            const availableRooms = Object.keys(roomConfig)
-                .filter(r => roomConfig[r].gender === model.gender && r !== model.room);
-
-            let content = `
-                <div class="form-group">
-                    <label>현재: ${roomConfig[model.room].name} - ${model.roomType}</label>
-                </div>
-                <div class="form-group">
-                    <label>이동할 숙소</label>
-                    <select id="moveToRoom">
-            `;
-
-            availableRooms.forEach(roomId => {
-                content += `<option value="${roomId}">${roomConfig[roomId].name}</option>`;
-            });
-
-            content += `
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>방 타입</label>
-                    <select id="moveToRoomType">
-                        <option value="1인실">1인실</option>
-                        <option value="2인실">2인실</option>
-                    </select>
-                </div>
-            `;
-
-            document.getElementById('moveContent').innerHTML = content;
-            document.getElementById('moveModal').style.display = 'block';
-        }
-
-        // 이동 모달 닫기
-        function closeMoveModal() {
-            document.getElementById('moveModal').style.display = 'none';
-        }
-
-        // 이동 확인
-        async function confirmMove() {
-            const model = models.find(m => m.id === currentMoveId);
-            const newRoom = document.getElementById('moveToRoom').value;
-            const newRoomType = document.getElementById('moveToRoomType').value;
-
-            closeMoveModal();
-
-            await saveToSheet('update', {
-                id: model.id,
-                name: model.name,
-                gender: model.gender,
-                room: newRoom,
-                roomType: newRoomType,
-                checkin: model.checkin,
-                checkout: model.checkout,
-                note: model.note
-            });
+            renderCalendar();
         }
 
         // 모델 삭제
-        async function deleteModel(id) {
+        function deleteModel(id) {
             const model = models.find(m => m.id === id);
-            if (confirm(`${model.name} 퇴실 처리하시겠습니까?`)) {
-                await saveToSheet('delete', { id });
+            if (confirm(`${model.name} 모델을 삭제하시겠습니까?`)) {
+                models = models.filter(m => m.id !== id);
+                renderCalendar();
             }
         }
 
-        // 초기화
-        document.getElementById('today').textContent = today.toLocaleDateString('ko-KR', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-            weekday: 'short'
+        // 초기 렌더링 (샘플 데이터 없음)
+        window.addEventListener('load', () => {
+            renderCalendar();
         });
-
-        // 페이지 로드 시 데이터 불러오기
-        loadFromSheet();
-
-        // 30초마다 자동 새로고침 (다른 사람의 변경사항 반영)
-        setInterval(loadFromSheet, 30000);
     </script>
 </body>
 </html>
+```
+
+**이 전체 코드를 복사해서 GitHub의 index.html에 붙여넣으세요!** 📋
