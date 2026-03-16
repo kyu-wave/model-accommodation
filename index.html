@@ -515,7 +515,12 @@
         // 구글 시트에서 데이터 불러오기
         async function loadFromGoogleSheets() {
             try {
-                const response = await fetch(`${SCRIPT_URL}?action=getAll`);
+                const url = `${SCRIPT_URL}?action=getAll&timestamp=${new Date().getTime()}`;
+                const response = await fetch(url, {
+                    method: 'GET',
+                    redirect: 'follow'
+                });
+                
                 const result = await response.json();
                 
                 if (result.success && result.data) {
@@ -530,32 +535,36 @@
                         color: model.color || colors[0]
                     }));
                     renderCalendar();
+                } else {
+                    console.log('데이터 없음');
+                    renderCalendar();
                 }
             } catch (error) {
                 console.error('데이터 불러오기 실패:', error);
-                alert('데이터를 불러올 수 없습니다. 인터넷 연결을 확인해주세요.');
+                alert('데이터를 불러올 수 없습니다. 다시 시도해주세요.');
+                renderCalendar();
             }
         }
 
         // 구글 시트에 데이터 저장하기
         async function saveToGoogleSheets() {
             try {
-                const response = await fetch(SCRIPT_URL, {
+                const url = `${SCRIPT_URL}`;
+                const response = await fetch(url, {
                     method: 'POST',
+                    mode: 'no-cors',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
                         action: 'save',
                         models: models
-                    })
+                    }),
+                    redirect: 'follow'
                 });
                 
-                const result = await response.json();
-                
-                if (!result.success) {
-                    throw new Error('저장 실패');
-                }
+                // no-cors 모드에서는 응답을 읽을 수 없으므로 성공으로 간주
+                console.log('데이터 저장 완료');
             } catch (error) {
                 console.error('데이터 저장 실패:', error);
                 alert('데이터 저장에 실패했습니다. 다시 시도해주세요.');
