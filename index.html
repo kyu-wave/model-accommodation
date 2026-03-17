@@ -6,41 +6,68 @@
     <title>웨이브 모델 아파트 현황표</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8f9fa; padding: 20px; }
-        .header { background: white; padding: 24px; margin-bottom: 24px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .header h1 { font-size: 24px; margin-bottom: 16px; color: #1e293b; }
-        .btn-group { display: flex; gap: 12px; }
-        .btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; transition: 0.2s; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8f9fa; padding: 15px; }
+        
+        .header { background: white; padding: 15px 24px; margin-bottom: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { font-size: 20px; color: #1e293b; }
+        .btn-group { display: flex; gap: 8px; }
+        .btn { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; transition: 0.2s; }
         .btn-primary { background: #2563eb; color: white; }
         .btn-success { background: #16a34a; color: white; }
-        .calendar-wrapper { background: white; border-radius: 8px; overflow: auto; box-shadow: 0 1px 3px rgba(0,0,0,0.1); max-height: 75vh; }
-        table { width: 100%; border-collapse: collapse; min-width: 1500px; }
-        thead { position: sticky; top: 0; z-index: 10; background: #f1f5f9; }
-        th { padding: 10px 5px; border: 1px solid #e2e8f0; font-size: 11px; color: #475569; }
-        td { border: 1px solid #e2e8f0; padding: 6px; vertical-align: top; min-height: 120px; width: 90px; }
-        .month-cell { background: #f8fafc; font-weight: 700; text-align: center; vertical-align: middle; width: 60px; }
-        .period-cell { background: #fafbfc; font-size: 12px; color: #64748b; text-align: center; width: 80px; vertical-align: middle; }
-        
-        /* 모델 카드 스타일 */
-        .model-card { background: white; border: 2px solid #3b82f6; border-radius: 6px; padding: 4px; margin-bottom: 4px; position: relative; }
-        .model-photo { width: 100%; height: 70px; object-fit: cover; border-radius: 4px; margin-bottom: 4px; background: #eee; }
-        .model-name { font-size: 11px; font-weight: 700; text-align: center; color: #1e293b; }
-        .model-dates { font-size: 9px; color: #64748b; text-align: center; }
-        .card-actions { position: absolute; top: 2px; right: 2px; display: none; gap: 2px; }
-        .model-card:hover .card-actions { display: flex; }
-        .action-btn { background: rgba(255,255,255,0.8); border: 1px solid #ddd; border-radius: 3px; width: 18px; height: 18px; font-size: 10px; cursor: pointer; }
 
-        /* 모달 스타일 */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 100; align-items: center; justify-content: center; }
-        .modal.show { display: flex; }
-        .modal-content { background: white; padding: 24px; border-radius: 12px; width: 90%; max-width: 400px; }
-        .form-group { margin-bottom: 12px; }
-        .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px; }
-        .form-group input, .form-group select { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        .calendar-wrapper { background: white; border-radius: 8px; overflow: auto; box-shadow: 0 1px 3px rgba(0,0,0,0.1); max-height: 82vh; }
+        table { width: 100%; border-collapse: collapse; min-width: 1600px; table-layout: fixed; }
+        thead { position: sticky; top: 0; z-index: 100; background: #f1f5f9; }
+        th { padding: 6px 2px; border: 1px solid #e2e8f0; font-size: 11px; color: #475569; background: #f1f5f9; }
         
-        .photo-preview-box { width: 60px; height: 60px; border: 1px dashed #ccc; margin-top: 5px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-        #photoPreview { max-width: 100%; max-height: 100%; object-fit: cover; }
-        .loading { display: none; position: fixed; top: 20px; right: 20px; background: #333; color: white; padding: 10px 20px; border-radius: 20px; z-index: 200; font-size: 12px; }
+        /* 4. 한 칸 높이 축소 */
+        td { border: 1px solid #e2e8f0; padding: 4px; vertical-align: top; height: 85px; overflow: hidden; }
+        
+        /* 3. 겹칠 때 반반 레이아웃 (Flex 사용) */
+        .cell-container { display: flex; gap: 2px; height: 100%; width: 100%; }
+        
+        .month-cell { background: #f8fafc; font-weight: 700; text-align: center; vertical-align: middle; width: 50px; }
+        .period-cell { background: #fafbfc; font-size: 11px; color: #64748b; text-align: center; width: 70px; vertical-align: middle; }
+
+        /* 모델 카드 스타일 최적화 */
+        .model-card { 
+            flex: 1; /* 반반씩 나눠 갖도록 설정 */
+            min-width: 0;
+            background: white; 
+            border: 1.5px solid #3b82f6; 
+            border-radius: 4px; 
+            padding: 2px; 
+            position: relative; 
+            display: flex; 
+            flex-direction: column; 
+            cursor: grab; 
+            height: 100%;
+        }
+        .model-card:active { cursor: grabbing; }
+        .model-card.dragging { opacity: 0.4; border-style: dashed; }
+        
+        /* 사진 크기 축소 */
+        .model-photo { width: 100%; height: 45px; object-fit: cover; border-radius: 2px; margin-bottom: 2px; background: #eee; pointer-events: none; }
+        .model-name { font-size: 10px; font-weight: 700; text-align: center; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        
+        /* 2. 시작 ~ 종료 날짜 모두 표시 */
+        .model-dates { font-size: 8.5px; color: #64748b; text-align: center; line-height: 1; transform: scale(0.9); }
+        
+        .card-actions { position: absolute; top: 1px; right: 1px; display: none; gap: 1px; }
+        .model-card:hover .card-actions { display: flex; }
+        .action-btn { background: rgba(255,255,255,0.9); border: 1px solid #ddd; border-radius: 2px; width: 16px; height: 16px; font-size: 9px; cursor: pointer; }
+
+        /* 드래그 오버 효과 */
+        .drop-target.drag-over { background-color: #eff6ff; border: 2px dashed #3b82f6 !important; }
+
+        /* 모달 및 로딩 */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+        .modal.show { display: flex; }
+        .modal-content { background: white; padding: 20px; border-radius: 12px; width: 90%; max-width: 380px; }
+        .form-group { margin-bottom: 10px; }
+        .form-group label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 3px; }
+        .form-group input, .form-group select { width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px; }
+        .loading { display: none; position: fixed; top: 20px; right: 20px; background: #333; color: white; padding: 8px 16px; border-radius: 20px; z-index: 2000; font-size: 12px; }
     </style>
 </head>
 <body>
@@ -48,7 +75,7 @@
 <div id="loadingStatus" class="loading">처리 중...</div>
 
 <div class="header">
-    <h1>🏠 모델 아파트 거주 현황표 (Wave)</h1>
+    <h1>🏠 모델 아파트 현황표 (Wave)</h1>
     <div class="btn-group">
         <button class="btn btn-primary" onclick="openModal()">+ 모델 추가</button>
         <button class="btn btn-success" onclick="saveAllToSheet()">💾 전체 저장</button>
@@ -59,7 +86,7 @@
     <table>
         <thead>
             <tr>
-                <th rowspan="2">월</th><th rowspan="2">기간</th>
+                <th rowspan="2" style="width:50px;">월</th><th rowspan="2" style="width:70px;">기간</th>
                 <th colspan="5">301호</th><th colspan="4">201호</th><th colspan="3">101호</th><th colspan="5">아파트 외</th>
             </tr>
             <tr>
@@ -75,18 +102,12 @@
 
 <div id="modelModal" class="modal">
     <div class="modal-content">
-        <h2 id="modalTitle" style="margin-bottom: 15px;">모델 등록</h2>
+        <h2 id="modalTitle" style="margin-bottom: 15px; font-size: 18px;">모델 등록</h2>
         <input type="hidden" id="editId">
-        
         <div class="form-group">
-            <label>모델 사진</label>
+            <label>사진</label>
             <input type="file" id="photoInput" accept="image/*" onchange="processImage(this)">
-            <div class="photo-preview-box">
-                <img id="photoPreview" src="" style="display:none;">
-                <span id="photoPlaceholder" style="font-size:10px; color:#999;">미리보기</span>
-            </div>
         </div>
-
         <div class="form-group"><label>이름</label><input type="text" id="mName"></div>
         <div class="form-group"><label>아파트</label>
             <select id="mApt" onchange="updateBeds()">
@@ -96,9 +117,8 @@
         <div class="form-group"><label>침대</label><select id="mBed"></select></div>
         <div class="form-group"><label>입국일 *</label><input type="date" id="mStart"></div>
         <div class="form-group"><label>출국일</label><input type="date" id="mEnd"></div>
-        
-        <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px;">
-            <button class="btn" onclick="closeModal()">취소</button>
+        <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 15px;">
+            <button class="btn" onclick="closeModal()" style="background:#eee;">취소</button>
             <button class="btn btn-primary" onclick="addModelToList()">확인</button>
         </div>
     </div>
@@ -108,7 +128,8 @@
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz4tAMIyClNZYV6JlvGIpa7k75qd3oI5UHgqPhQjvybMJGZyGbpl4wZDgEZMsJAZN6_/exec';
     
     let models = [];
-    let tempPhoto = ""; // 사진 임시 저장 변수
+    let tempPhoto = "";
+    let draggedId = null;
 
     const bedData = {
         '301': ['301-왼쪽1', '301-왼쪽2', '301-창문1', '301-창문2', '301-개인'],
@@ -119,28 +140,6 @@
 
     window.onload = () => loadData();
 
-    // 1. 사진 압축 처리
-    function processImage(input) {
-        if (!input.files[0]) return;
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const img = new Image();
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                canvas.width = 100; // 가로 100px로 축소 (시트 용량 최적화)
-                canvas.height = (img.height / img.width) * 100;
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                tempPhoto = canvas.toDataURL('image/jpeg', 0.7);
-                document.getElementById('photoPreview').src = tempPhoto;
-                document.getElementById('photoPreview').style.display = 'block';
-                document.getElementById('photoPlaceholder').style.display = 'none';
-            };
-            img.src = e.target.result;
-        };
-        reader.readAsDataURL(input.files[0]);
-    }
-
     async function loadData() {
         toggleLoading(true);
         try {
@@ -150,21 +149,34 @@
                 models = json.data;
                 renderCalendar();
             }
-        } catch (e) { console.error("데이터 로드 실패:", e); }
+        } catch (e) { console.error(e); }
         toggleLoading(false);
     }
 
     async function saveAllToSheet() {
         toggleLoading(true);
         try {
-            await fetch(SCRIPT_URL, {
-                method: 'POST',
-                body: JSON.stringify({ action: 'save', models: models })
-            });
-            alert("✅ 시트에 성공적으로 저장되었습니다.");
+            await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'save', models: models }) });
+            alert("✅ 전체 저장 완료");
             loadData();
-        } catch (e) { alert("저장 중 오류 발생"); }
+        } catch (e) { alert("저장 실패"); }
         toggleLoading(false);
+    }
+
+    function processImage(input) {
+        if (!input.files[0]) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = 100; canvas.height = (img.height / img.width) * 100;
+                canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+                tempPhoto = canvas.toDataURL('image/jpeg', 0.7);
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(input.files[0]);
     }
 
     function updateBeds() {
@@ -173,12 +185,116 @@
         bedSel.innerHTML = bedData[apt] ? bedData[apt].map(b => `<option value="${b}">${b}</option>`).join('') : '';
     }
 
-    function openModal(id = null) {
-        tempPhoto = ""; 
-        document.getElementById('photoPreview').style.display = 'none';
-        document.getElementById('photoPlaceholder').style.display = 'block';
-        document.getElementById('photoInput').value = "";
+    // --- 드래그 앤 드롭 로직 ---
+    function handleDragStart(e, id) {
+        draggedId = id;
+        e.currentTarget.classList.add('dragging');
+        e.dataTransfer.setData('text/plain', id);
+    }
 
+    function handleDragEnd(e) {
+        e.currentTarget.classList.remove('dragging');
+    }
+
+    function handleDragOver(e) {
+        e.preventDefault();
+        e.currentTarget.classList.add('drag-over');
+    }
+
+    function handleDragLeave(e) {
+        e.currentTarget.classList.remove('drag-over');
+    }
+
+    function handleDrop(e, bedId) {
+        e.preventDefault();
+        e.currentTarget.classList.remove('drag-over');
+        const id = draggedId;
+        const model = models.find(m => m.id == id);
+        if (model && model.bed !== bedId) {
+            model.bed = bedId;
+            model.apt = bedId.split('-')[0];
+            renderCalendar();
+            // 팁: 드래그 후 바로 저장하려면 아래 주석 해제
+            // saveAllToSheet(); 
+        }
+    }
+
+    function renderCalendar() {
+        const body = document.getElementById('calendarBody');
+        body.innerHTML = '';
+        const now = new Date();
+        
+        for (let i = -1; i < 5; i++) {
+            const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+            const year = d.getFullYear(); const month = d.getMonth() + 1;
+            const lastDay = new Date(year, month, 0).getDate();
+            const periods = [{ label: '1~10일', s: 1, e: 10 }, { label: '11~20일', s: 11, e: 20 }, { label: `21~${lastDay}일`, s: 21, e: lastDay }];
+
+            periods.forEach((p, pIdx) => {
+                const tr = document.createElement('tr');
+                if (pIdx === 0) {
+                    const mCell = document.createElement('td');
+                    mCell.className = 'month-cell'; mCell.rowSpan = 3;
+                    mCell.textContent = `${month}월`; tr.appendChild(mCell);
+                }
+                const pCell = document.createElement('td');
+                pCell.className = 'period-cell'; pCell.textContent = p.label;
+                tr.appendChild(pCell);
+
+                ['301','201','101','외'].forEach(aptKey => {
+                    bedData[aptKey].forEach(bedId => {
+                        const td = document.createElement('td');
+                        td.className = 'drop-target';
+                        td.ondragover = handleDragOver;
+                        td.ondragleave = handleDragLeave;
+                        td.ondrop = (e) => handleDrop(e, bedId);
+
+                        const container = document.createElement('div');
+                        container.className = 'cell-container';
+                        
+                        const inModels = models.filter(m => m.bed === bedId && checkDate(m, year, month, p.s, p.e));
+                        
+                        inModels.forEach(m => {
+                            const card = document.createElement('div');
+                            card.className = 'model-card';
+                            card.draggable = true;
+                            card.ondragstart = (e) => handleDragStart(e, m.id);
+                            card.ondragend = handleDragEnd;
+
+                            // 2. 날짜 표시 형식 수정 (MM-DD ~ MM-DD)
+                            const dateTxt = `${String(m.startDate).slice(5)} ~ ${m.endDate ? String(m.endDate).slice(5) : '미정'}`;
+
+                            card.innerHTML = `
+                                <div class="card-actions">
+                                    <button class="action-btn" onclick="openModal(${m.id})">✏️</button>
+                                    <button class="action-btn" onclick="deleteModel(${m.id})">🗑️</button>
+                                </div>
+                                ${m.photo ? `<img src="${m.photo}" class="model-photo">` : ''}
+                                <div class="model-name">${m.name}</div>
+                                <div class="model-dates">${dateTxt}</div>
+                            `;
+                            container.appendChild(card);
+                        });
+                        td.appendChild(container);
+                        tr.appendChild(td);
+                    });
+                });
+                body.appendChild(tr);
+            });
+        }
+    }
+
+    function checkDate(m, y, mon, s, e) {
+        if (!m.startDate) return false;
+        const start = new Date(y, mon - 1, s);
+        const end = new Date(y, mon - 1, e, 23, 59);
+        const mStart = new Date(m.startDate);
+        const mEnd = m.endDate ? new Date(m.endDate) : new Date(2099, 11, 31);
+        return mStart <= end && mEnd >= start;
+    }
+
+    function openModal(id = null) {
+        tempPhoto = "";
         if (id) {
             const m = models.find(x => x.id == id);
             document.getElementById('editId').value = m.id;
@@ -188,15 +304,12 @@
             document.getElementById('mBed').value = m.bed;
             document.getElementById('mStart').value = m.startDate;
             document.getElementById('mEnd').value = m.endDate;
-            if(m.photo) {
-                tempPhoto = m.photo;
-                document.getElementById('photoPreview').src = m.photo;
-                document.getElementById('photoPreview').style.display = 'block';
-                document.getElementById('photoPlaceholder').style.display = 'none';
-            }
+            tempPhoto = m.photo || "";
         } else {
             document.getElementById('editId').value = '';
             document.getElementById('mName').value = '';
+            document.getElementById('mStart').value = '';
+            document.getElementById('mEnd').value = '';
         }
         document.getElementById('modelModal').classList.add('show');
     }
@@ -215,84 +328,14 @@
             photo: tempPhoto,
             color: '#3b82f6'
         };
-        
-        if (!modelObj.name || !modelObj.startDate) return alert("이름과 입국일은 필수입니다.");
-
+        if (!modelObj.name || !modelObj.startDate) return alert("필수 항목 입력 누락");
         const idx = models.findIndex(x => x.id == id);
         if (idx > -1) models[idx] = modelObj;
         else models.push(modelObj);
-
-        closeModal();
-        renderCalendar();
+        closeModal(); renderCalendar();
     }
 
-    function deleteModel(id) {
-        if (confirm("삭제하시겠습니까?")) {
-            models = models.filter(x => x.id != id);
-            renderCalendar();
-        }
-    }
-
-    function renderCalendar() {
-        const body = document.getElementById('calendarBody');
-        body.innerHTML = '';
-        const now = new Date();
-        
-        for (let i = -1; i < 5; i++) {
-            const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
-            const year = d.getFullYear(); const month = d.getMonth() + 1;
-            const lastDay = new Date(year, month, 0).getDate();
-            const periods = [
-                { label: '1~10일', s: 1, e: 10 }, { label: '11~20일', s: 11, e: 20 }, { label: `21~${lastDay}일`, s: 21, e: lastDay }
-            ];
-
-            periods.forEach((p, pIdx) => {
-                const tr = document.createElement('tr');
-                if (pIdx === 0) {
-                    const mCell = document.createElement('td');
-                    mCell.className = 'month-cell'; mCell.rowSpan = 3;
-                    mCell.textContent = `${month}월`; tr.appendChild(mCell);
-                }
-                const pCell = document.createElement('td');
-                pCell.className = 'period-cell'; pCell.textContent = p.label;
-                tr.appendChild(pCell);
-
-                ['301','201','101','외'].forEach(aptKey => {
-                    bedData[aptKey].forEach(bedId => {
-                        const td = document.createElement('td');
-                        const inModels = models.filter(m => m.bed === bedId && checkDate(m, year, month, p.s, p.e));
-                        
-                        inModels.forEach(m => {
-                            const card = document.createElement('div');
-                            card.className = 'model-card';
-                            card.innerHTML = `
-                                <div class="card-actions">
-                                    <button class="action-btn" onclick="openModal(${m.id})">✏️</button>
-                                    <button class="action-btn" onclick="deleteModel(${m.id})">🗑️</button>
-                                </div>
-                                ${m.photo ? `<img src="${m.photo}" class="model-photo">` : ''}
-                                <div class="model-name">${m.name}</div>
-                                <div class="model-dates">${String(m.startDate).slice(5)} ~</div>
-                            `;
-                            td.appendChild(card);
-                        });
-                        tr.appendChild(td);
-                    });
-                });
-                body.appendChild(tr);
-            });
-        }
-    }
-
-    function checkDate(m, y, mon, s, e) {
-        if (!m.startDate) return false;
-        const start = new Date(y, mon - 1, s);
-        const end = new Date(y, mon - 1, e, 23, 59);
-        const mStart = new Date(m.startDate);
-        const mEnd = m.endDate ? new Date(m.endDate) : new Date(2099, 11, 31);
-        return mStart <= end && mEnd >= start;
-    }
-
+    function deleteModel(id) { if (confirm("삭제할까요?")) { models = models.filter(x => x.id != id); renderCalendar(); } }
     function toggleLoading(show) { document.getElementById('loadingStatus').style.display = show ? 'block' : 'none'; }
 </script>
 </body>
