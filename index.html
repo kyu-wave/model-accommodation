@@ -515,7 +515,10 @@
         // 구글 시트에서 데이터 불러오기
         async function loadFromGoogleSheets() {
             try {
-                const response = await fetch(`${SCRIPT_URL}?action=getAll`);
+                const response = await fetch(`${SCRIPT_URL}?action=getAll`, {
+                    method: 'GET',
+                    redirect: 'follow'
+                });
                 const result = await response.json();
                 
                 if (result.success && result.data) {
@@ -542,8 +545,9 @@
             try {
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
+                    redirect: 'follow',
                     headers: {
-                        'Content-Type': 'application/json',
+                        'Content-Type': 'text/plain',
                     },
                     body: JSON.stringify({
                         action: 'save',
