@@ -8,6 +8,7 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8f9fa; padding: 15px; }
         
+        /* 헤더 스타일 */
         .header { background: white; padding: 15px 24px; margin-bottom: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
         .header h1 { font-size: 20px; color: #1e293b; }
         .btn-group { display: flex; gap: 8px; }
@@ -15,24 +16,26 @@
         .btn-primary { background: #2563eb; color: white; }
         .btn-success { background: #16a34a; color: white; }
 
+        /* 테이블 래퍼 */
         .calendar-wrapper { background: white; border-radius: 8px; overflow: auto; box-shadow: 0 1px 3px rgba(0,0,0,0.1); max-height: 82vh; }
         table { width: 100%; border-collapse: collapse; min-width: 1600px; table-layout: fixed; }
         thead { position: sticky; top: 0; z-index: 100; background: #f1f5f9; }
         th { padding: 6px 2px; border: 1px solid #e2e8f0; font-size: 11px; color: #475569; background: #f1f5f9; }
         
-        /* 4. 한 칸 높이 축소 */
-        td { border: 1px solid #e2e8f0; padding: 4px; vertical-align: top; height: 85px; overflow: hidden; }
+        /* 한 칸 높이 축소 */
+        td { border: 1px solid #e2e8f0; padding: 2px; vertical-align: top; height: 95px; overflow: hidden; }
         
-        /* 3. 겹칠 때 반반 레이아웃 (Flex 사용) */
-        .cell-container { display: flex; gap: 2px; height: 100%; width: 100%; }
+        /* 겹칠 때 반반 레이아웃 */
+        .cell-container { display: flex; gap: 2px; height: 100%; width: 100%; align-items: flex-start; }
         
         .month-cell { background: #f8fafc; font-weight: 700; text-align: center; vertical-align: middle; width: 50px; }
         .period-cell { background: #fafbfc; font-size: 11px; color: #64748b; text-align: center; width: 70px; vertical-align: middle; }
 
-        /* 모델 카드 스타일 최적화 */
+        /* 모델 카드 스타일 (가로폭 좁게 수정) */
         .model-card { 
-            flex: 1; /* 반반씩 나눠 갖도록 설정 */
+            flex: 1;
             min-width: 0;
+            max-width: 75px; /* 카드의 최대 가로폭을 좁게 설정 */
             background: white; 
             border: 1.5px solid #3b82f6; 
             border-radius: 4px; 
@@ -41,18 +44,27 @@
             display: flex; 
             flex-direction: column; 
             cursor: grab; 
-            height: 100%;
+            height: auto;
+            max-height: 90px;
         }
         .model-card:active { cursor: grabbing; }
         .model-card.dragging { opacity: 0.4; border-style: dashed; }
         
-        /* 사진 크기 축소 */
-        .model-photo { width: 100%; height: 45px; object-fit: cover; border-radius: 2px; margin-bottom: 2px; background: #eee; pointer-events: none; }
+        /* 사진: 1:1 비율 및 가로폭 축소 */
+        .model-photo { 
+            width: 100%; 
+            aspect-ratio: 1 / 1; /* 1:1 정사각형 고정 */
+            object-fit: cover; 
+            border-radius: 2px; 
+            margin-bottom: 2px; 
+            background: #eee; 
+            pointer-events: none; 
+        }
+        
         .model-name { font-size: 10px; font-weight: 700; text-align: center; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .model-dates { font-size: 8px; color: #64748b; text-align: center; line-height: 1; transform: scale(0.9); }
         
-        /* 2. 시작 ~ 종료 날짜 모두 표시 */
-        .model-dates { font-size: 8.5px; color: #64748b; text-align: center; line-height: 1; transform: scale(0.9); }
-        
+        /* 카드 액션 버튼 */
         .card-actions { position: absolute; top: 1px; right: 1px; display: none; gap: 1px; }
         .model-card:hover .card-actions { display: flex; }
         .action-btn { background: rgba(255,255,255,0.9); border: 1px solid #ddd; border-radius: 2px; width: 16px; height: 16px; font-size: 9px; cursor: pointer; }
@@ -60,13 +72,15 @@
         /* 드래그 오버 효과 */
         .drop-target.drag-over { background-color: #eff6ff; border: 2px dashed #3b82f6 !important; }
 
-        /* 모달 및 로딩 */
+        /* 모달 스타일 */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
         .modal.show { display: flex; }
         .modal-content { background: white; padding: 20px; border-radius: 12px; width: 90%; max-width: 380px; }
         .form-group { margin-bottom: 10px; }
         .form-group label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 3px; }
         .form-group input, .form-group select { width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px; }
+        
+        /* 로딩바 */
         .loading { display: none; position: fixed; top: 20px; right: 20px; background: #333; color: white; padding: 8px 16px; border-radius: 20px; z-index: 2000; font-size: 12px; }
     </style>
 </head>
@@ -125,6 +139,7 @@
 </div>
 
 <script>
+    // 구글 앱 스크립트 URL
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz4tAMIyClNZYV6JlvGIpa7k75qd3oI5UHgqPhQjvybMJGZyGbpl4wZDgEZMsJAZN6_/exec';
     
     let models = [];
@@ -157,7 +172,7 @@
         toggleLoading(true);
         try {
             await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'save', models: models }) });
-            alert("✅ 전체 저장 완료");
+            alert("✅ 시트 저장 완료");
             loadData();
         } catch (e) { alert("저장 실패"); }
         toggleLoading(false);
@@ -185,25 +200,16 @@
         bedSel.innerHTML = bedData[apt] ? bedData[apt].map(b => `<option value="${b}">${b}</option>`).join('') : '';
     }
 
-    // --- 드래그 앤 드롭 로직 ---
+    // 드래그 앤 드롭 함수
     function handleDragStart(e, id) {
         draggedId = id;
         e.currentTarget.classList.add('dragging');
         e.dataTransfer.setData('text/plain', id);
     }
 
-    function handleDragEnd(e) {
-        e.currentTarget.classList.remove('dragging');
-    }
-
-    function handleDragOver(e) {
-        e.preventDefault();
-        e.currentTarget.classList.add('drag-over');
-    }
-
-    function handleDragLeave(e) {
-        e.currentTarget.classList.remove('drag-over');
-    }
+    function handleDragEnd(e) { e.currentTarget.classList.remove('dragging'); }
+    function handleDragOver(e) { e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
+    function handleDragLeave(e) { e.currentTarget.classList.remove('drag-over'); }
 
     function handleDrop(e, bedId) {
         e.preventDefault();
@@ -214,8 +220,6 @@
             model.bed = bedId;
             model.apt = bedId.split('-')[0];
             renderCalendar();
-            // 팁: 드래그 후 바로 저장하려면 아래 주석 해제
-            // saveAllToSheet(); 
         }
     }
 
@@ -261,8 +265,7 @@
                             card.ondragstart = (e) => handleDragStart(e, m.id);
                             card.ondragend = handleDragEnd;
 
-                            // 2. 날짜 표시 형식 수정 (MM-DD ~ MM-DD)
-                            const dateTxt = `${String(m.startDate).slice(5)} ~ ${m.endDate ? String(m.endDate).slice(5) : '미정'}`;
+                            const dateTxt = `${String(m.startDate).slice(5)} ~ ${m.endDate ? String(m.endDate).slice(5) : '..'}`;
 
                             card.innerHTML = `
                                 <div class="card-actions">
@@ -328,14 +331,14 @@
             photo: tempPhoto,
             color: '#3b82f6'
         };
-        if (!modelObj.name || !modelObj.startDate) return alert("필수 항목 입력 누락");
+        if (!modelObj.name || !modelObj.startDate) return alert("입력 정보 부족");
         const idx = models.findIndex(x => x.id == id);
         if (idx > -1) models[idx] = modelObj;
         else models.push(modelObj);
         closeModal(); renderCalendar();
     }
 
-    function deleteModel(id) { if (confirm("삭제할까요?")) { models = models.filter(x => x.id != id); renderCalendar(); } }
+    function deleteModel(id) { if (confirm("삭제하시겠습니까?")) { models = models.filter(x => x.id != id); renderCalendar(); } }
     function toggleLoading(show) { document.getElementById('loadingStatus').style.display = show ? 'block' : 'none'; }
 </script>
 </body>
