@@ -6,81 +6,92 @@
     <title>웨이브 모델 아파트 현황표</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8f9fa; padding: 15px; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8f9fa; padding: 10px; }
         
-        /* 헤더 스타일 */
-        .header { background: white; padding: 15px 24px; margin-bottom: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
-        .header h1 { font-size: 20px; color: #1e293b; }
-        .btn-group { display: flex; gap: 8px; }
-        .btn { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; transition: 0.2s; }
+        /* 헤더 */
+        .header { background: white; padding: 12px 20px; margin-bottom: 10px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { font-size: 18px; color: #1e293b; }
+        .btn-group { display: flex; gap: 6px; }
+        .btn { padding: 6px 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 500; transition: 0.2s; }
         .btn-primary { background: #2563eb; color: white; }
         .btn-success { background: #16a34a; color: white; }
 
-        /* 테이블 래퍼 */
-        .calendar-wrapper { background: white; border-radius: 8px; overflow: auto; box-shadow: 0 1px 3px rgba(0,0,0,0.1); max-height: 82vh; }
-        table { width: 100%; border-collapse: collapse; min-width: 1600px; table-layout: fixed; }
+        /* 테이블 래퍼 - 전체 너비를 1600에서 1300으로 줄여 가로폭 최적화 */
+        .calendar-wrapper { background: white; border-radius: 8px; overflow: auto; box-shadow: 0 1px 3px rgba(0,0,0,0.1); max-height: 85vh; }
+        table { width: 100%; border-collapse: collapse; min-width: 1300px; table-layout: fixed; }
         thead { position: sticky; top: 0; z-index: 100; background: #f1f5f9; }
-        th { padding: 6px 2px; border: 1px solid #e2e8f0; font-size: 11px; color: #475569; background: #f1f5f9; }
+        th { padding: 8px 2px; border: 1px solid #e2e8f0; font-size: 11px; color: #475569; background: #f1f5f9; }
         
-        /* 한 칸 높이 축소 */
-        td { border: 1px solid #e2e8f0; padding: 2px; vertical-align: top; height: 95px; overflow: hidden; }
+        /* 한 칸 높이 및 가로폭 */
+        td { border: 1px solid #e2e8f0; padding: 3px; vertical-align: top; height: 110px; overflow: hidden; }
         
-        /* 겹칠 때 반반 레이아웃 */
-        .cell-container { display: flex; gap: 2px; height: 100%; width: 100%; align-items: flex-start; }
+        .cell-container { display: flex; gap: 3px; height: 100%; width: 100%; align-items: flex-start; }
         
-        .month-cell { background: #f8fafc; font-weight: 700; text-align: center; vertical-align: middle; width: 50px; }
-        .period-cell { background: #fafbfc; font-size: 11px; color: #64748b; text-align: center; width: 70px; vertical-align: middle; }
+        .month-cell { background: #f8fafc; font-weight: 700; text-align: center; vertical-align: middle; width: 45px; font-size: 12px; }
+        .period-cell { background: #fafbfc; font-size: 11px; color: #64748b; text-align: center; width: 65px; vertical-align: middle; }
 
-        /* 모델 카드 스타일 (가로폭 좁게 수정) */
+        /* 모델 카드 - 가로폭은 좁게, 가독성은 높게 */
         .model-card { 
             flex: 1;
             min-width: 0;
-            max-width: 75px; /* 카드의 최대 가로폭을 좁게 설정 */
             background: white; 
-            border: 1.5px solid #3b82f6; 
+            border: 2px solid #3b82f6; 
             border-radius: 4px; 
-            padding: 2px; 
+            padding: 3px; 
             position: relative; 
             display: flex; 
             flex-direction: column; 
             cursor: grab; 
             height: auto;
-            max-height: 90px;
         }
         .model-card:active { cursor: grabbing; }
         .model-card.dragging { opacity: 0.4; border-style: dashed; }
         
-        /* 사진: 1:1 비율 및 가로폭 축소 */
+        /* 사진: 좁은 가로폭에 맞춰 세로 비율을 조금 더 확보 (1:1.2) */
         .model-photo { 
             width: 100%; 
-            aspect-ratio: 1 / 1; /* 1:1 정사각형 고정 */
+            aspect-ratio: 1 / 1.2; 
             object-fit: cover; 
             border-radius: 2px; 
-            margin-bottom: 2px; 
+            margin-bottom: 4px; 
             background: #eee; 
             pointer-events: none; 
         }
         
-        .model-name { font-size: 10px; font-weight: 700; text-align: center; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .model-dates { font-size: 8px; color: #64748b; text-align: center; line-height: 1; transform: scale(0.9); }
+        /* 이름: 글씨 크기를 키우고 줄바꿈 허용 */
+        .model-name { 
+            font-size: 11px; 
+            font-weight: 800; 
+            text-align: center; 
+            color: #1e293b; 
+            line-height: 1.2;
+            margin-bottom: 2px;
+            word-break: keep-all; /* 단어 단위 줄바꿈 */
+        }
         
-        /* 카드 액션 버튼 */
+        /* 날짜: 글씨 크기 키우고 선명하게 */
+        .model-dates { 
+            font-size: 10px; 
+            font-weight: 500;
+            color: #64748b; 
+            text-align: center; 
+            line-height: 1;
+            white-space: nowrap;
+        }
+        
         .card-actions { position: absolute; top: 1px; right: 1px; display: none; gap: 1px; }
         .model-card:hover .card-actions { display: flex; }
-        .action-btn { background: rgba(255,255,255,0.9); border: 1px solid #ddd; border-radius: 2px; width: 16px; height: 16px; font-size: 9px; cursor: pointer; }
+        .action-btn { background: rgba(255,255,255,0.9); border: 1px solid #ddd; border-radius: 2px; width: 18px; height: 18px; font-size: 10px; cursor: pointer; }
 
-        /* 드래그 오버 효과 */
         .drop-target.drag-over { background-color: #eff6ff; border: 2px dashed #3b82f6 !important; }
 
-        /* 모달 스타일 */
+        /* 모달 및 로딩 */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
         .modal.show { display: flex; }
         .modal-content { background: white; padding: 20px; border-radius: 12px; width: 90%; max-width: 380px; }
         .form-group { margin-bottom: 10px; }
         .form-group label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 3px; }
-        .form-group input, .form-group select { width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px; }
-        
-        /* 로딩바 */
+        .form-group input, .form-group select { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
         .loading { display: none; position: fixed; top: 20px; right: 20px; background: #333; color: white; padding: 8px 16px; border-radius: 20px; z-index: 2000; font-size: 12px; }
     </style>
 </head>
@@ -100,7 +111,7 @@
     <table>
         <thead>
             <tr>
-                <th rowspan="2" style="width:50px;">월</th><th rowspan="2" style="width:70px;">기간</th>
+                <th rowspan="2" style="width:45px;">월</th><th rowspan="2" style="width:65px;">기간</th>
                 <th colspan="5">301호</th><th colspan="4">201호</th><th colspan="3">101호</th><th colspan="5">아파트 외</th>
             </tr>
             <tr>
@@ -116,7 +127,7 @@
 
 <div id="modelModal" class="modal">
     <div class="modal-content">
-        <h2 id="modalTitle" style="margin-bottom: 15px; font-size: 18px;">모델 등록</h2>
+        <h2 id="modalTitle" style="margin-bottom: 15px; font-size: 18px;">모델 등록/수정</h2>
         <input type="hidden" id="editId">
         <div class="form-group">
             <label>사진</label>
@@ -139,7 +150,6 @@
 </div>
 
 <script>
-    // 구글 앱 스크립트 URL
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz4tAMIyClNZYV6JlvGIpa7k75qd3oI5UHgqPhQjvybMJGZyGbpl4wZDgEZMsJAZN6_/exec';
     
     let models = [];
@@ -172,9 +182,9 @@
         toggleLoading(true);
         try {
             await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'save', models: models }) });
-            alert("✅ 시트 저장 완료");
+            alert("✅ 시트에 성공적으로 저장되었습니다.");
             loadData();
-        } catch (e) { alert("저장 실패"); }
+        } catch (e) { alert("저장 중 오류 발생"); }
         toggleLoading(false);
     }
 
@@ -185,9 +195,9 @@
             const img = new Image();
             img.onload = () => {
                 const canvas = document.createElement('canvas');
-                canvas.width = 100; canvas.height = (img.height / img.width) * 100;
+                canvas.width = 120; canvas.height = (img.height / img.width) * 120;
                 canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-                tempPhoto = canvas.toDataURL('image/jpeg', 0.7);
+                tempPhoto = canvas.toDataURL('image/jpeg', 0.8);
             };
             img.src = e.target.result;
         };
@@ -200,7 +210,6 @@
         bedSel.innerHTML = bedData[apt] ? bedData[apt].map(b => `<option value="${b}">${b}</option>`).join('') : '';
     }
 
-    // 드래그 앤 드롭 함수
     function handleDragStart(e, id) {
         draggedId = id;
         e.currentTarget.classList.add('dragging');
@@ -331,7 +340,7 @@
             photo: tempPhoto,
             color: '#3b82f6'
         };
-        if (!modelObj.name || !modelObj.startDate) return alert("입력 정보 부족");
+        if (!modelObj.name || !modelObj.startDate) return alert("필수 정보를 입력하세요.");
         const idx = models.findIndex(x => x.id == id);
         if (idx > -1) models[idx] = modelObj;
         else models.push(modelObj);
