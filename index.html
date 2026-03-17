@@ -20,25 +20,32 @@
         td { border: 1px solid #e2e8f0; padding: 6px; vertical-align: top; min-height: 120px; width: 90px; }
         .month-cell { background: #f8fafc; font-weight: 700; text-align: center; vertical-align: middle; width: 60px; }
         .period-cell { background: #fafbfc; font-size: 12px; color: #64748b; text-align: center; width: 80px; vertical-align: middle; }
+        
+        /* 모델 카드 스타일 */
         .model-card { background: white; border: 2px solid #3b82f6; border-radius: 6px; padding: 4px; margin-bottom: 4px; position: relative; }
-        .model-photo { width: 100%; height: 70px; object-fit: cover; border-radius: 4px; margin-bottom: 4px; }
+        .model-photo { width: 100%; height: 70px; object-fit: cover; border-radius: 4px; margin-bottom: 4px; background: #eee; }
         .model-name { font-size: 11px; font-weight: 700; text-align: center; color: #1e293b; }
         .model-dates { font-size: 9px; color: #64748b; text-align: center; }
         .card-actions { position: absolute; top: 2px; right: 2px; display: none; gap: 2px; }
         .model-card:hover .card-actions { display: flex; }
-        .action-btn { background: white; border: 1px solid #ddd; border-radius: 3px; width: 18px; height: 18px; font-size: 10px; cursor: pointer; }
+        .action-btn { background: rgba(255,255,255,0.8); border: 1px solid #ddd; border-radius: 3px; width: 18px; height: 18px; font-size: 10px; cursor: pointer; }
+
+        /* 모달 스타일 */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 100; align-items: center; justify-content: center; }
         .modal.show { display: flex; }
         .modal-content { background: white; padding: 24px; border-radius: 12px; width: 90%; max-width: 400px; }
         .form-group { margin-bottom: 12px; }
         .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px; }
         .form-group input, .form-group select { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        
+        .photo-preview-box { width: 60px; height: 60px; border: 1px dashed #ccc; margin-top: 5px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        #photoPreview { max-width: 100%; max-height: 100%; object-fit: cover; }
         .loading { display: none; position: fixed; top: 20px; right: 20px; background: #333; color: white; padding: 10px 20px; border-radius: 20px; z-index: 200; font-size: 12px; }
     </style>
 </head>
 <body>
 
-<div id="loadingStatus" class="loading">데이터 처리 중...</div>
+<div id="loadingStatus" class="loading">처리 중...</div>
 
 <div class="header">
     <h1>🏠 모델 아파트 거주 현황표 (Wave)</h1>
@@ -70,6 +77,16 @@
     <div class="modal-content">
         <h2 id="modalTitle" style="margin-bottom: 15px;">모델 등록</h2>
         <input type="hidden" id="editId">
+        
+        <div class="form-group">
+            <label>모델 사진</label>
+            <input type="file" id="photoInput" accept="image/*" onchange="processImage(this)">
+            <div class="photo-preview-box">
+                <img id="photoPreview" src="" style="display:none;">
+                <span id="photoPlaceholder" style="font-size:10px; color:#999;">미리보기</span>
+            </div>
+        </div>
+
         <div class="form-group"><label>이름</label><input type="text" id="mName"></div>
         <div class="form-group"><label>아파트</label>
             <select id="mApt" onchange="updateBeds()">
@@ -79,6 +96,7 @@
         <div class="form-group"><label>침대</label><select id="mBed"></select></div>
         <div class="form-group"><label>입국일 *</label><input type="date" id="mStart"></div>
         <div class="form-group"><label>출국일</label><input type="date" id="mEnd"></div>
+        
         <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px;">
             <button class="btn" onclick="closeModal()">취소</button>
             <button class="btn btn-primary" onclick="addModelToList()">확인</button>
@@ -87,10 +105,11 @@
 </div>
 
 <script>
-    // ⚠️ 여기에 대표님의 웹 앱 URL을 다시 한번 확인해서 넣어주세요!
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz4tAMIyClNZYV6JlvGIpa7k75qd3oI5UHgqPhQjvybMJGZyGbpl4wZDgEZMsJAZN6_/exec';
     
     let models = [];
+    let tempPhoto = ""; // 사진 임시 저장 변수
+
     const bedData = {
         '301': ['301-왼쪽1', '301-왼쪽2', '301-창문1', '301-창문2', '301-개인'],
         '201': ['201-큰A', '201-큰B', '201-작은1', '201-작은2'],
@@ -100,13 +119,34 @@
 
     window.onload = () => loadData();
 
+    // 1. 사진 압축 처리
+    function processImage(input) {
+        if (!input.files[0]) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = 100; // 가로 100px로 축소 (시트 용량 최적화)
+                canvas.height = (img.height / img.width) * 100;
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                tempPhoto = canvas.toDataURL('image/jpeg', 0.7);
+                document.getElementById('photoPreview').src = tempPhoto;
+                document.getElementById('photoPreview').style.display = 'block';
+                document.getElementById('photoPlaceholder').style.display = 'none';
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+
     async function loadData() {
         toggleLoading(true);
         try {
             const res = await fetch(`${SCRIPT_URL}?action=getAll`);
             const json = await res.json();
             if (json.success) {
-                console.log("시트에서 불러온 데이터:", json.data);
                 models = json.data;
                 renderCalendar();
             }
@@ -117,7 +157,7 @@
     async function saveAllToSheet() {
         toggleLoading(true);
         try {
-            const res = await fetch(SCRIPT_URL, {
+            await fetch(SCRIPT_URL, {
                 method: 'POST',
                 body: JSON.stringify({ action: 'save', models: models })
             });
@@ -134,6 +174,11 @@
     }
 
     function openModal(id = null) {
+        tempPhoto = ""; 
+        document.getElementById('photoPreview').style.display = 'none';
+        document.getElementById('photoPlaceholder').style.display = 'block';
+        document.getElementById('photoInput').value = "";
+
         if (id) {
             const m = models.find(x => x.id == id);
             document.getElementById('editId').value = m.id;
@@ -143,6 +188,12 @@
             document.getElementById('mBed').value = m.bed;
             document.getElementById('mStart').value = m.startDate;
             document.getElementById('mEnd').value = m.endDate;
+            if(m.photo) {
+                tempPhoto = m.photo;
+                document.getElementById('photoPreview').src = m.photo;
+                document.getElementById('photoPreview').style.display = 'block';
+                document.getElementById('photoPlaceholder').style.display = 'none';
+            }
         } else {
             document.getElementById('editId').value = '';
             document.getElementById('mName').value = '';
@@ -161,7 +212,8 @@
             bed: document.getElementById('mBed').value,
             startDate: document.getElementById('mStart').value,
             endDate: document.getElementById('mEnd').value,
-            photo: "", color: '#3b82f6'
+            photo: tempPhoto,
+            color: '#3b82f6'
         };
         
         if (!modelObj.name || !modelObj.startDate) return alert("이름과 입국일은 필수입니다.");
@@ -191,9 +243,7 @@
             const year = d.getFullYear(); const month = d.getMonth() + 1;
             const lastDay = new Date(year, month, 0).getDate();
             const periods = [
-                { label: '1~10일', s: 1, e: 10 },
-                { label: '11~20일', s: 11, e: 20 },
-                { label: `21~${lastDay}일`, s: 21, e: lastDay }
+                { label: '1~10일', s: 1, e: 10 }, { label: '11~20일', s: 11, e: 20 }, { label: `21~${lastDay}일`, s: 21, e: lastDay }
             ];
 
             periods.forEach((p, pIdx) => {
@@ -220,6 +270,7 @@
                                     <button class="action-btn" onclick="openModal(${m.id})">✏️</button>
                                     <button class="action-btn" onclick="deleteModel(${m.id})">🗑️</button>
                                 </div>
+                                ${m.photo ? `<img src="${m.photo}" class="model-photo">` : ''}
                                 <div class="model-name">${m.name}</div>
                                 <div class="model-dates">${String(m.startDate).slice(5)} ~</div>
                             `;
