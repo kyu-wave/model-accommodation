@@ -3,88 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>웨이브 모델 아파트 현황표</title>
+    <title>웨이브 모델 아파트 현황표 (Speed optimized)</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8f9fa; padding: 10px; }
-        
-        /* 헤더 */
         .header { background: white; padding: 12px 20px; margin-bottom: 10px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
         .header h1 { font-size: 18px; color: #1e293b; }
         .btn-group { display: flex; gap: 6px; }
         .btn { padding: 6px 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 500; transition: 0.2s; }
         .btn-primary { background: #2563eb; color: white; }
         .btn-success { background: #16a34a; color: white; }
-
-        /* 테이블 래퍼 */
         .calendar-wrapper { background: white; border-radius: 8px; overflow: auto; box-shadow: 0 1px 3px rgba(0,0,0,0.1); max-height: 85vh; }
         table { width: 100%; border-collapse: collapse; min-width: 1300px; table-layout: fixed; }
         thead { position: sticky; top: 0; z-index: 100; background: #f1f5f9; }
         th { padding: 8px 2px; border: 1px solid #e2e8f0; font-size: 11px; color: #475569; background: #f1f5f9; }
-        
-        /* 아파트 구획 구분을 위한 굵은 세로선 */
         .apt-border-left { border-left: 4px solid #334155 !important; }
-        
         td { border: 1px solid #e2e8f0; padding: 3px; vertical-align: top; height: 110px; overflow: hidden; }
-        
         .cell-container { display: flex; gap: 3px; height: 100%; width: 100%; align-items: flex-start; }
-        
         .month-cell { background: #f8fafc; font-weight: 700; text-align: center; vertical-align: middle; width: 45px; font-size: 12px; }
         .period-cell { background: #fafbfc; font-size: 11px; color: #64748b; text-align: center; width: 65px; vertical-align: middle; }
-
-        /* 모델 카드 */
-        .model-card { 
-            flex: 1;
-            min-width: 0;
-            background: white; 
-            border: 2px solid #3b82f6; 
-            border-radius: 4px; 
-            padding: 3px; 
-            position: relative; 
-            display: flex; 
-            flex-direction: column; 
-            cursor: grab; 
-            height: auto;
-        }
+        .model-card { flex: 1; min-width: 0; background: white; border: 2px solid #3b82f6; border-radius: 4px; padding: 3px; position: relative; display: flex; flex-direction: column; cursor: grab; height: auto; }
         .model-card:active { cursor: grabbing; }
         .model-card.dragging { opacity: 0.4; border-style: dashed; }
-        
-        .model-photo { 
-            width: 100%; 
-            aspect-ratio: 1 / 1.2; 
-            object-fit: cover; 
-            border-radius: 2px; 
-            margin-bottom: 4px; 
-            background: #eee; 
-            pointer-events: none; 
-        }
-        
-        .model-name { 
-            font-size: 11px; 
-            font-weight: 800; 
-            text-align: center; 
-            color: #1e293b; 
-            line-height: 1.2;
-            margin-bottom: 2px;
-            word-break: keep-all; 
-        }
-        
-        .model-dates { 
-            font-size: 10px; 
-            font-weight: 500;
-            color: #64748b; 
-            text-align: center; 
-            line-height: 1;
-            white-space: nowrap;
-        }
-        
+        .model-photo { width: 100%; aspect-ratio: 1 / 1.2; object-fit: cover; border-radius: 2px; margin-bottom: 4px; background: #eee; pointer-events: none; }
+        .model-name { font-size: 11px; font-weight: 800; text-align: center; color: #1e293b; line-height: 1.2; margin-bottom: 2px; word-break: keep-all; }
+        .model-dates { font-size: 10px; font-weight: 500; color: #64748b; text-align: center; line-height: 1; white-space: nowrap; }
         .card-actions { position: absolute; top: 1px; right: 1px; display: none; gap: 1px; }
         .model-card:hover .card-actions { display: flex; }
         .action-btn { background: rgba(255,255,255,0.9); border: 1px solid #ddd; border-radius: 2px; width: 18px; height: 18px; font-size: 10px; cursor: pointer; }
-
         .drop-target.drag-over { background-color: #eff6ff; border: 2px dashed #3b82f6 !important; }
-
-        /* 모달 및 로딩 */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
         .modal.show { display: flex; }
         .modal-content { background: white; padding: 20px; border-radius: 12px; width: 90%; max-width: 380px; }
@@ -96,13 +43,13 @@
 </head>
 <body>
 
-<div id="loadingStatus" class="loading">처리 중...</div>
+<div id="loadingStatus" class="loading">최신 정보 동기화 중...</div>
 
 <div class="header">
-    <h1>🏠 모델 아파트 거주 현황표 (Wave)</h1>
+    <h1>🏠 모델 아파트 현황표 (Wave)</h1>
     <div class="btn-group">
         <button class="btn btn-primary" onclick="openModal()">+ 모델 추가</button>
-        <button class="btn btn-success" onclick="saveAllToSheet()">💾 전체 저장</button>
+        <button id="saveBtn" class="btn btn-success" onclick="saveAllToSheet()">💾 전체 저장</button>
     </div>
 </div>
 
@@ -162,31 +109,51 @@
         '외': ['외-1', '외-2', '외-3', '외-4', '외-5']
     };
 
-    window.onload = () => loadData();
+    // --- 속도 개선의 핵심: 로컬 캐싱 기능 ---
+    window.onload = () => {
+        // 1. 먼저 로컬에 저장된 데이터가 있는지 확인하고 즉시 그립니다.
+        const cachedData = localStorage.getItem('model_data');
+        if (cachedData) {
+            models = JSON.parse(cachedData);
+            renderCalendar();
+            console.log("로컬 데이터를 먼저 불러와 즉시 표시했습니다.");
+        }
+        // 2. 그 후 배경에서 최신 데이터를 서버에서 가져옵니다.
+        loadDataFromServer();
+    };
 
-    async function loadData() {
+    async function loadDataFromServer() {
         toggleLoading(true);
         try {
             const res = await fetch(`${SCRIPT_URL}?action=getAll`);
             const json = await res.json();
             if (json.success) {
                 models = json.data;
+                // 서버 데이터가 로컬과 다르면 다시 그려줍니다.
+                localStorage.setItem('model_data', JSON.stringify(models));
                 renderCalendar();
+                console.log("서버에서 최신 데이터를 받아와 동기화했습니다.");
             }
-        } catch (e) { console.error(e); }
+        } catch (e) { console.error("서버 연결 실패. 로컬 데이터로 유지합니다.", e); }
         toggleLoading(false);
     }
 
     async function saveAllToSheet() {
+        const saveBtn = document.getElementById('saveBtn');
+        saveBtn.disabled = true;
+        saveBtn.innerText = "⏳ 저장 중...";
         toggleLoading(true);
         try {
-            await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'save', models: models }) });
+            const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'save', models: models }) });
+            localStorage.setItem('model_data', JSON.stringify(models)); // 로컬 데이터도 갱신
             alert("✅ 시트에 성공적으로 저장되었습니다.");
-            loadData();
         } catch (e) { alert("저장 중 오류 발생"); }
+        saveBtn.disabled = false;
+        saveBtn.innerText = "💾 전체 저장";
         toggleLoading(false);
     }
 
+    // 사진 압축 및 처리 최적화
     function processImage(input) {
         if (!input.files[0]) return;
         const reader = new FileReader();
@@ -194,9 +161,13 @@
             const img = new Image();
             img.onload = () => {
                 const canvas = document.createElement('canvas');
-                canvas.width = 120; canvas.height = (img.height / img.width) * 120;
-                canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-                tempPhoto = canvas.toDataURL('image/jpeg', 0.8);
+                // 해상도를 시각적으로는 괜찮으면서 용량은 확 줄이는 최적의 값
+                const MAX_W = 120;
+                canvas.width = MAX_W;
+                canvas.height = (img.height / img.width) * MAX_W;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                tempPhoto = canvas.toDataURL('image/jpeg', 0.6); // 퀄리티 0.6으로 용량 최적화
             };
             img.src = e.target.result;
         };
@@ -214,49 +185,38 @@
         e.currentTarget.classList.add('dragging');
         e.dataTransfer.setData('text/plain', id);
     }
-
     function handleDragEnd(e) { e.currentTarget.classList.remove('dragging'); }
     function handleDragOver(e) { e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
     function handleDragLeave(e) { e.currentTarget.classList.remove('drag-over'); }
-
     function handleDrop(e, bedId) {
-        e.preventDefault();
-        e.currentTarget.classList.remove('drag-over');
+        e.preventDefault(); e.currentTarget.classList.remove('drag-over');
         const id = draggedId;
         const model = models.find(m => m.id == id);
         if (model && model.bed !== bedId) {
-            model.bed = bedId;
-            model.apt = bedId.split('-')[0];
+            model.bed = bedId; model.apt = bedId.split('-')[0];
             renderCalendar();
         }
     }
 
     function renderCalendar() {
         const body = document.getElementById('calendarBody');
-        body.innerHTML = '';
         const now = new Date();
-        
-        // 1. 전월 21일~말일부터 시작하도록 기간 로직 수정
+        const fragment = document.createDocumentFragment(); // 성능 개선을 위해 DocumentFragment 사용
+
         for (let i = -1; i < 5; i++) {
             const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
             const year = d.getFullYear(); const month = d.getMonth() + 1;
             const lastDay = new Date(year, month, 0).getDate();
             
-            // 기본 기간 설정
             let periods = [
                 { label: '1~10일', s: 1, e: 10 }, 
                 { label: '11~20일', s: 11, e: 20 }, 
                 { label: `21~${lastDay}일`, s: 21, e: lastDay }
             ];
-
-            // 전월(i === -1)일 경우 마지막 기간만 남김
-            if (i === -1) {
-                periods = [periods[2]];
-            }
+            if (i === -1) periods = [periods[2]]; // 전월은 마지막 칸만
 
             periods.forEach((p, pIdx) => {
                 const tr = document.createElement('tr');
-                // 월 셀 표시 (i === -1인 경우 기간이 1개이므로 rowspan을 기간 개수만큼 설정)
                 if (pIdx === 0) {
                     const mCell = document.createElement('td');
                     mCell.className = 'month-cell'; mCell.rowSpan = periods.length;
@@ -266,17 +226,12 @@
                 pCell.className = 'period-cell'; pCell.textContent = p.label;
                 tr.appendChild(pCell);
 
-                // 2. 아파트별 굵은 세로 경계선 적용
-                ['301','201','101','외'].forEach((aptKey, aptIdx) => {
+                ['301','201','101','외'].forEach(aptKey => {
                     bedData[aptKey].forEach((bedId, bedIdx) => {
                         const td = document.createElement('td');
                         td.className = 'drop-target';
-                        // 각 아파트의 첫 번째 침대 컬럼에 굵은 선 추가
                         if (bedIdx === 0) td.classList.add('apt-border-left');
-                        
-                        td.ondragover = handleDragOver;
-                        td.ondragleave = handleDragLeave;
-                        td.ondrop = (e) => handleDrop(e, bedId);
+                        td.ondragover = handleDragOver; td.ondragleave = handleDragLeave; td.ondrop = (e) => handleDrop(e, bedId);
 
                         const container = document.createElement('div');
                         container.className = 'cell-container';
@@ -291,13 +246,12 @@
                             card.ondragend = handleDragEnd;
 
                             const dateTxt = `${String(m.startDate).slice(5)} ~ ${m.endDate ? String(m.endDate).slice(5) : '..'}`;
-
                             card.innerHTML = `
                                 <div class="card-actions">
                                     <button class="action-btn" onclick="openModal(${m.id})">✏️</button>
                                     <button class="action-btn" onclick="deleteModel(${m.id})">🗑️</button>
                                 </div>
-                                ${m.photo ? `<img src="${m.photo}" class="model-photo">` : ''}
+                                ${m.photo ? `<img src="${m.photo}" class="model-photo" loading="lazy">` : ''}
                                 <div class="model-name">${m.name}</div>
                                 <div class="model-dates">${dateTxt}</div>
                             `;
@@ -307,9 +261,11 @@
                         tr.appendChild(td);
                     });
                 });
-                body.appendChild(tr);
+                fragment.appendChild(tr);
             });
         }
+        body.innerHTML = '';
+        body.appendChild(fragment);
     }
 
     function checkDate(m, y, mon, s, e) {
